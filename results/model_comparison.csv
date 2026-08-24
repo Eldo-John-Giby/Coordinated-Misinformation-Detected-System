@@ -1,0 +1,6 @@
+model,accuracy,precision,recall,f1,roc_auc,pr_auc
+threshold_baseline,0.5,0.5,1.0,0.6666666666666666,0.5,0.5
+random_forest,1.0,1.0,1.0,1.0,1.0,1.0
+logistic_regression,1.0,1.0,1.0,1.0,1.0,1.0
+gcn,1.0,1.0,1.0,1.0,1.0,1.0
+graphsage,1.0,1.0,1.0,1.0,1.0,1.0

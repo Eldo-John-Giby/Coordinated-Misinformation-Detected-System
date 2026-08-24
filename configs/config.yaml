@@ -1,0 +1,243 @@
+# Coordinated Misinformation Network Detection System
+# Configuration file
+
+# ============================================================
+# DATA CONFIGURATION
+# ============================================================
+data:
+  # Path to raw dataset directory (downloaded CSVs go here)
+  raw_dir: "data/raw"
+  # Path to processed dataset output
+  processed_dir: "data/processed"
+  # Campaign to use (e.g., "Armenia", "China_1", "Cuba", or "all")
+  campaign: "Armenia"
+  # Maximum number of files to load per campaign (for memory management)
+  max_files_per_campaign: 10
+  # Maximum number of posts to load (null = all)
+  max_posts: null
+  # Fraction of data to use for quick experiments (null = use all)
+  subsample_fraction: null
+  # Random seed for reproducibility
+  random_seed: 42
+
+# ============================================================
+# PREPROCESSING CONFIGURATION
+# ============================================================
+preprocessing:
+  # Text normalization
+  lowercase: true
+  remove_urls_from_text: true
+  remove_mentions_from_text: false  # Keep mentions for feature extraction
+  min_text_length: 3
+  # Missing value handling
+  drop_malformed: true
+  fill_missing_text: ""
+  # Timestamp parsing
+  timestamp_format: null  # Auto-detect
+
+# ============================================================
+# NLP CONFIGURATION
+# ============================================================
+nlp:
+  # Sentence transformer model
+  model_name: "sentence-transformers/all-MiniLM-L6-v2"
+  # Embedding dimension (384 for all-MiniLM-L6-v2)
+  embedding_dim: 384
+  # Batch size for embedding computation
+  batch_size: 256
+  # Device (null = auto-detect)
+  device: null
+
+# ============================================================
+# SIMILARITY SEARCH CONFIGURATION
+# ============================================================
+similarity:
+  # Method for nearest neighbor search
+  method: "faiss"  # "faiss" or "sklearn"
+  # Number of nearest neighbors to find
+  k_neighbors: 20
+  # Cosine similarity threshold for creating edges
+  semantic_threshold: 0.7
+  # Use FAISS index type (flat, ivf, pq)
+  faiss_index_type: "flat"
+
+# ============================================================
+# TEMPORAL CONFIGURATION
+# ============================================================
+temporal:
+  # Time decay parameter (tau) in seconds
+  # Posts within tau seconds have high temporal coordination score
+  tau: 3600  # 1 hour
+  # Burst detection window (seconds)
+  burst_window: 300  # 5 minutes
+  # Minimum posts in burst window to count as burst
+  burst_min_posts: 3
+
+# ============================================================
+# COORDINATION EDGE CONFIGURATION
+# ============================================================
+coordination:
+  # Edge creation threshold
+  edge_threshold: 0.3
+  # Feature weights for coordination score
+  weights:
+    semantic: 0.35
+    temporal: 0.25
+    url: 0.15
+    hashtag: 0.10
+    mention: 0.05
+    repost: 0.10
+  # Maximum number of edges per node (for scalability)
+  max_edges_per_node: 50
+  # Minimum coordination score to keep an edge
+  min_edge_score: 0.1
+
+# ============================================================
+# GRAPH CONFIGURATION
+# ============================================================
+graph:
+  # Whether to use node features
+  use_node_features: true
+  # Node feature types
+  node_features:
+    - post_count
+    - avg_follower_count
+    - avg_following_count
+    - repost_ratio
+    - avg_hashtag_count
+    - avg_url_count
+    - avg_mention_count
+  # Edge feature types
+  edge_features:
+    - semantic_similarity
+    - temporal_score
+    - shared_url_score
+    - shared_hashtag_score
+    - shared_mention_score
+    - repost_score
+
+# ============================================================
+# MODEL CONFIGURATION
+# ============================================================
+models:
+  # GCN configuration
+  gcn:
+    hidden_channels: 64
+    num_layers: 2
+    dropout: 0.5
+    learning_rate: 0.001
+    epochs: 100
+    patience: 10  # Early stopping patience
+
+  # GraphSAGE configuration
+  graphsage:
+    hidden_channels: 64
+    num_layers: 2
+    dropout: 0.5
+    learning_rate: 0.001
+    epochs: 100
+    patience: 10
+    aggregator: "mean"  # "mean", "max", "lstm"
+
+  # Baseline ML models
+  baseline:
+    random_forest:
+      n_estimators: 100
+      max_depth: 20
+      random_state: 42
+    logistic_regression:
+      max_iter: 1000
+      random_state: 42
+
+# ============================================================
+# DATA SPLITTING CONFIGURATION
+# ============================================================
+splitting:
+  # Split strategy: "account", "campaign", "temporal"
+  strategy: "account"
+  # Train/test/val ratios (for account split)
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  # For temporal split: cutoff date (ISO format)
+  temporal_cutoff: null
+
+# ============================================================
+# EVALUATION CONFIGURATION
+# ============================================================
+evaluation:
+  # Metrics to compute
+  classification_metrics:
+    - accuracy
+    - precision
+    - recall
+    - f1
+    - roc_auc
+    - pr_auc
+  community_metrics:
+    - adjusted_rand_index
+    - normalized_mutual_info
+  # Cross-validation folds (null = no CV)
+  cv_folds: null
+
+# ============================================================
+# EXPLAINABILITY CONFIGURATION
+# ============================================================
+explainability:
+  # Methods to use
+  methods:
+    - "feature_importance"
+    - "permutation_importance"
+  # Number of permutation runs
+  permutation_runs: 10
+  # Whether to compute SHAP (requires additional dependencies)
+  use_shap: false
+  # Whether to use GNNExplainer
+  use_gnnexplainer: true
+
+# ============================================================
+# VISUALIZATION CONFIGURATION
+# ============================================================
+visualization:
+  # Output directory for figures
+  output_dir: "results/figures"
+  # Figure format
+  format: "png"
+  # DPI for saved figures
+  dpi: 150
+  # Maximum nodes to display in network graph
+  max_network_nodes: 200
+  # Color scheme
+  color_scheme:
+    io_account: "#e74c3c"
+    control_account: "#2ecc71"
+    suspicious_group: "#e67e22"
+    background: "#ffffff"
+
+# ============================================================
+# EXPERIMENTS CONFIGURATION
+# ============================================================
+experiments:
+  # Run ablation study
+  ablation: true
+  # Feature ablation categories
+  ablation_features:
+    - "semantic"
+    - "temporal"
+    - "url"
+    - "hashtag"
+    - "mention"
+    - "repost"
+  # Run cross-campaign evaluation
+  cross_campaign: false
+  # Output directory for experiment results
+  output_dir: "results"
+
+# ============================================================
+# STREAMLIT CONFIGURATION
+# ============================================================
+streamlit:
+  port: 8501
+  theme: "dark"
+  max_display_groups: 50
+  max_display_accounts: 100
