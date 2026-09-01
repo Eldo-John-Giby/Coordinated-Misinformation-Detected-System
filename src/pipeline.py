@@ -195,15 +195,27 @@ class CoordinationDetectionPipeline:
         comparison_df = self.experiment_runner.run_model_comparison(model_results)
         results["comparison_table"] = self.evaluation.format_results_table(comparison_df)
 
-        # Stage 11: Explainability
-        logger.info("\n[Stage 11] Generating explanations...")
+        # Stage 11: Ablation study
+        if self.config.get("experiments", {}).get("ablation", False):
+            logger.info("\n[Stage 11] Running feature ablation study...")
+            ablation_df = self._run_ablation(
+                account_features_df, edge_features_df, G
+            )
+            results["ablation_results"] = ablation_df.to_dict(orient="records")
+            try:
+                self.visualizer.plot_ablation_results(ablation_df)
+            except Exception as e:
+                logger.warning(f"Ablation visualization failed: {e}")
+
+        # Stage 12: Explainability
+        logger.info("\n[Stage 12] Generating explanations...")
         explanations = self.community_detector.generate_group_explanations(
             suspicious_groups, G, df
         )
         results["suspicious_groups"] = explanations
 
-        # Stage 12: Visualizations
-        logger.info("\n[Stage 12] Creating visualizations...")
+        # Stage 13: Visualizations
+        logger.info("\n[Stage 13] Creating visualizations...")
         self._create_visualizations(G, communities, df, edge_features_df,
                                     model_results, account_features_df, explanations)
 
@@ -385,6 +397,138 @@ class CoordinationDetectionPipeline:
         history = model.train(data, train_mask, val_mask)
         metrics = model.evaluate(data, test_mask)
         return metrics
+
+    def _run_ablation(self, account_df: pd.DataFrame,
+                       edge_features_df: pd.DataFrame,
+                       G: "nx.Graph") -> pd.DataFrame:
+        """Run feature ablation study.
+
+        Removes one feature category at a time, rebuilds the graph,
+        and re-trains a Random Forest baseline to measure impact.
+        """
+        feature_column_map = {
+            "semantic": ["semantic_similarity"],
+            "temporal": ["temporal_score"],
+            "url": ["shared_url_score", "shared_url_count"],
+            "hashtag": ["shared_hashtag_score", "shared_hashtag_count"],
+            "mention": ["shared_mention_score", "shared_mention_count"],
+            "repost": ["repost_score"],
+        }
+        categories = self.config.get("experiments", {}).get(
+            "ablation_features", list(feature_column_map.keys())
+        )
+
+        # Prepare account-level labels and features
+        feature_cols = [
+            "post_count", "avg_follower_count", "avg_following_count",
+            "repost_ratio", "avg_hashtag_count", "avg_url_count",
+            "avg_mention_count", "posts_per_day"
+        ]
+        available_cols = [c for c in feature_cols if c in account_df.columns]
+
+        if not available_cols or "is_io" not in account_df.columns:
+            logger.warning("Insufficient features for ablation study")
+            return pd.DataFrame()
+
+        X_full = account_df[available_cols].fillna(0).values
+        y = account_df["is_io"].astype(int).values
+
+        if len(np.unique(y)) < 2:
+            logger.warning("Only one class present, skipping ablation")
+            return pd.DataFrame()
+
+        from sklearn.model_selection import train_test_split
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.metrics import f1_score, accuracy_score
+
+        X_train_full, X_test_full, y_train, y_test = train_test_split(
+            X_full, y, test_size=0.2, random_state=42, stratify=y
+        )
+
+        results = []
+
+        # Full model baseline
+        rf_full = RandomForestClassifier(
+            n_estimators=100, max_depth=20, random_state=42,
+            class_weight="balanced", n_jobs=-1
+        )
+        rf_full.fit(X_train_full, y_train)
+        full_pred = rf_full.predict(X_test_full)
+        results.append({
+            "ablation": "none (full)",
+            "accuracy": accuracy_score(y_test, full_pred),
+            "f1": f1_score(y_test, full_pred, average="weighted", zero_division=0),
+        })
+
+        # Ablate each coordination feature category
+        for category in categories:
+            cols_to_remove = feature_column_map.get(category, [])
+            ablated_edge_df = edge_features_df.drop(
+                columns=[c for c in cols_to_remove if c in edge_features_df.columns],
+                errors="ignore"
+            )
+
+            # Recompute coordination scores without the ablated feature
+            ablated_edge_df["coordination_score"] = ablated_edge_df.apply(
+                lambda row: self.edge_feature_extractor.compute_coordination_score(
+                    row.to_dict()
+                ), axis=1
+            )
+
+            # Rebuild graph with ablated edges
+            try:
+                ablated_G = self.graph_builder.build_networkx_graph(
+                    ablated_edge_df, account_df
+                )
+                ablated_nodes = set(ablated_G.nodes())
+
+                # Use only accounts present in the ablated graph
+                mask = account_df["accountid"].isin(ablated_nodes)
+                X_ablated = account_df.loc[mask, available_cols].fillna(0).values
+                y_ablated = account_df.loc[mask, "is_io"].astype(int).values
+
+                if len(np.unique(y_ablated)) < 2 or len(X_ablated) < 10:
+                    logger.warning(
+                        f"Skipping ablation for {category}: insufficient data"
+                    )
+                    results.append({
+                        "ablation": f"no {category}",
+                        "accuracy": 0.0, "f1": 0.0,
+                    })
+                    continue
+
+                X_tr, X_te, y_tr, y_te = train_test_split(
+                    X_ablated, y_ablated, test_size=0.2,
+                    random_state=42, stratify=y_ablated
+                )
+
+                rf = RandomForestClassifier(
+                    n_estimators=100, max_depth=20, random_state=42,
+                    class_weight="balanced", n_jobs=-1
+                )
+                rf.fit(X_tr, y_tr)
+                pred = rf.predict(X_te)
+                results.append({
+                    "ablation": f"no {category}",
+                    "accuracy": accuracy_score(y_te, pred),
+                    "f1": f1_score(y_te, pred, average="weighted", zero_division=0),
+                })
+            except Exception as e:
+                logger.warning(f"Ablation failed for {category}: {e}")
+                results.append({
+                    "ablation": f"no {category}",
+                    "accuracy": 0.0, "f1": 0.0,
+                })
+
+        results_df = pd.DataFrame(results)
+
+        # Save results
+        output_path = os.path.join(self.output_dir, "ablation_results.csv")
+        results_df.to_csv(output_path, index=False)
+        logger.info(f"Ablation results saved to {output_path}")
+        logger.info(f"\nAblation Study Results:\n{results_df.to_string(index=False)}")
+
+        return results_df
 
     def _create_visualizations(self, G, communities, df, edge_features_df,
                                model_results, account_df, explanations):

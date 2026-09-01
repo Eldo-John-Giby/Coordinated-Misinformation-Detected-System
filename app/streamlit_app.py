@@ -283,7 +283,7 @@ def main():
         # Check if graph data is available
         graph_path = os.path.join(results_dir, "figures", "network_graph.png")
         if os.path.exists(graph_path):
-            st.image(graph_path, caption="Coordination Network", use_container_width=True)
+            st.image(graph_path, caption="Coordination Network")
         else:
             st.info("Network graph not generated yet")
 
@@ -330,7 +330,7 @@ def main():
                     chart_df, x="Model", y="Value", color="Metric",
                     barmode="group", title="Model Performance Comparison"
                 )
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True, key="model_comparison_chart")
         else:
             st.info("No model comparison data available")
 
@@ -372,7 +372,7 @@ def main():
                 xaxis_title="Weight",
                 height=300
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True, key=f"weights_chart_{group.get('group_id', 'N/A')}")
 
             st.markdown("---")
 

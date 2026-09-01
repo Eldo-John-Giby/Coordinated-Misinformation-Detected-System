@@ -9,8 +9,10 @@ data:
   raw_dir: "data/raw"
   # Path to processed dataset output
   processed_dir: "data/processed"
-  # Campaign to use (e.g., "Armenia", "China_1", "Cuba", or "all")
-  campaign: "Armenia"
+  # Campaign to use (e.g., "Honduras", "UAE", "Armenia", "China_1", "Cuba", or "all")
+  # For Zenodo IO dataset: use "Honduras" or "UAE"
+  # Run: python -m src.data.convert_zenodo --campaign Honduras
+  campaign: "Honduras"
   # Maximum number of files to load per campaign (for memory management)
   max_files_per_campaign: 10
   # Maximum number of posts to load (null = all)

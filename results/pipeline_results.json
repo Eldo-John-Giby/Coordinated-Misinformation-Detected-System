@@ -1,490 +1,821 @@
 {
   "data_stats": {
-    "total_posts": 1000,
-    "unique_accounts": 50
+    "total_posts": 1262830,
+    "unique_accounts": 224685
   },
   "graph_stats": {
-    "num_nodes": 50,
-    "num_edges": 340,
-    "density": 0.27755102040816326,
-    "avg_degree": 13.6,
-    "num_components": 8,
-    "avg_clustering": 0.6595711980097496,
-    "avg_edge_weight": 0.5446357924120665,
-    "max_edge_weight": 0.9090341746807099,
-    "min_edge_weight": 0.30508181793349126,
-    "max_degree": 26,
-    "median_degree": 18.5
+    "num_nodes": 224684,
+    "num_edges": 987981,
+    "density": 3.914138847174166e-05,
+    "avg_degree": 8.794404585996332,
+    "num_components": 104836,
+    "avg_clustering": 0.3115497284918858,
+    "avg_edge_weight": 0.5363631370818676,
+    "max_edge_weight": 0.9977719783782959,
+    "min_edge_weight": 0.30000023543834686,
+    "max_degree": 51,
+    "median_degree": 2.0
   },
   "model_comparison": {
     "threshold_baseline": {
-      "accuracy": 0.5,
-      "precision": 0.5,
-      "recall": 1.0,
-      "f1": 0.6666666666666666,
-      "roc_auc": 0.5,
-      "pr_auc": 0.5
+      "accuracy": 0.991695002759431,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": 0.9306627024974298,
+      "pr_auc": 0.1545855275010839
     },
     "random_forest": {
-      "accuracy": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0,
-      "roc_auc": 1.0,
-      "pr_auc": 1.0
+      "accuracy": 0.9991988784298017,
+      "precision": 0.9517426273458445,
+      "recall": 0.9517426273458445,
+      "f1": 0.9517426273458445,
+      "roc_auc": 0.9972519565799635,
+      "pr_auc": 0.9889615740121767
     },
     "logistic_regression": {
-      "accuracy": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0,
-      "roc_auc": 1.0,
-      "pr_auc": 1.0
+      "accuracy": 0.9720497585508601,
+      "precision": 0.2283076923076923,
+      "recall": 0.9946380697050938,
+      "f1": 0.3713713713713714,
+      "roc_auc": 0.9988328681369903,
+      "pr_auc": 0.9149336012352458
     },
     "gcn": {
-      "accuracy": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0,
-      "roc_auc": 1.0,
-      "pr_auc": 1.0
+      "accuracy": 0.9462675053406124,
+      "precision": 0.9928926676271822,
+      "recall": 0.9462675053406124,
+      "f1": 0.9661533455981114,
+      "roc_auc": 0.9954617585858052,
+      "pr_auc": 0.5889490689766652
     },
     "graphsage": {
-      "accuracy": 1.0,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0,
-      "roc_auc": 1.0,
-      "pr_auc": 1.0
+      "accuracy": 0.9175765487775932,
+      "precision": 0.9923485769012479,
+      "recall": 0.9175765487775932,
+      "f1": 0.9502103282924366,
+      "roc_auc": 0.9872895493128212,
+      "pr_auc": 0.6799628515197134
     }
   },
-  "comparison_table": "              model  accuracy  precision  recall     f1  roc_auc  pr_auc\n threshold_baseline    0.5000     0.5000  1.0000 0.6667   0.5000  0.5000\n      random_forest    1.0000     1.0000  1.0000 1.0000   1.0000  1.0000\nlogistic_regression    1.0000     1.0000  1.0000 1.0000   1.0000  1.0000\n                gcn    1.0000     1.0000  1.0000 1.0000   1.0000  1.0000\n          graphsage    1.0000     1.0000  1.0000 1.0000   1.0000  1.0000",
+  "comparison_table": "              model  accuracy  precision  recall     f1  roc_auc  pr_auc\n threshold_baseline    0.9917     0.0000  0.0000 0.0000   0.9307  0.1546\n      random_forest    0.9992     0.9517  0.9517 0.9517   0.9973  0.9890\nlogistic_regression    0.9720     0.2283  0.9946 0.3714   0.9988  0.9149\n                gcn    0.9463     0.9929  0.9463 0.9662   0.9955  0.5889\n          graphsage    0.9176     0.9923  0.9176 0.9502   0.9873  0.6800",
+  "ablation_results": [
+    {
+      "ablation": "none (full)",
+      "accuracy": 0.9991988784298017,
+      "f1": 0.9991988784298017
+    },
+    {
+      "ablation": "no semantic",
+      "accuracy": 0.9991988784298017,
+      "f1": 0.9991988784298017
+    },
+    {
+      "ablation": "no temporal",
+      "accuracy": 0.9991988784298017,
+      "f1": 0.9991988784298017
+    },
+    {
+      "ablation": "no url",
+      "accuracy": 0.9991988784298017,
+      "f1": 0.9991988784298017
+    },
+    {
+      "ablation": "no hashtag",
+      "accuracy": 0.9991988784298017,
+      "f1": 0.9991988784298017
+    },
+    {
+      "ablation": "no mention",
+      "accuracy": 0.9991988784298017,
+      "f1": 0.9991988784298017
+    },
+    {
+      "ablation": "no repost",
+      "accuracy": 0.9991988784298017,
+      "f1": 0.9991988784298017
+    }
+  ],
   "suspicious_groups": [
     {
-      "group_id": 5,
+      "group_id": 1961,
       "accounts": [
-        "IO_0001",
-        "IO_0004",
-        "IO_0005",
-        "IO_0006",
-        "IO_0013",
-        "IO_0014",
-        "IO_0021",
-        "IO_0022",
-        "IO_0023"
+        1194833072472182784,
+        1194834786008870912,
+        1194835665961340928
       ],
-      "num_accounts": 9,
-      "coordination_score": 0.6113593729716852,
-      "suspiciousness_score": 0.9384078118915056,
+      "num_accounts": 3,
+      "coordination_score": 0.6983472288286645,
+      "suspiciousness_score": 0.9695041686485992,
       "io_ratio": 1.0,
       "evidence": [
         {
           "accounts": [
-            "IO_0005",
-            "IO_0005"
+            1194833072472182784,
+            1.1948330724721828e+18
           ],
-          "coordination_score": 0.8641505718231202,
-          "description": "Accounts IO_0005 and IO_0005: high semantic similarity (0.75), temporal coordination (1.00), shared 3 URL(s), shared 5 hashtag(s)"
+          "coordination_score": 0.7000000834465028,
+          "description": "Accounts 1194833072472182784 and 1.1948330724721828e+18: high semantic similarity (1.00), temporal coordination (1.00)"
         },
         {
           "accounts": [
-            "IO_0021",
-            "IO_0021"
+            1194834786008870912,
+            1.194834786008871e+18
           ],
-          "coordination_score": 0.8629538655281068,
-          "description": "Accounts IO_0021 and IO_0021: high semantic similarity (0.75), temporal coordination (1.00), shared 3 URL(s), shared 5 hashtag(s)"
+          "coordination_score": 0.7000000834465028,
+          "description": "Accounts 1194834786008870912 and 1.194834786008871e+18: high semantic similarity (1.00), temporal coordination (1.00)"
         },
         {
           "accounts": [
-            "IO_0022",
-            "IO_0022"
+            1194834786008870912,
+            1.194835665961341e+18
           ],
-          "coordination_score": 0.8586876839399338,
-          "description": "Accounts IO_0022 and IO_0022: high semantic similarity (0.74), temporal coordination (1.00), shared 3 URL(s), shared 5 hashtag(s)"
+          "coordination_score": 0.7000000834465028,
+          "description": "Accounts 1194834786008870912 and 1.194835665961341e+18: high semantic similarity (1.00), temporal coordination (1.00)"
         },
         {
           "accounts": [
-            "IO_0004",
-            "IO_0004"
+            1194833072472182784,
+            1.194834786008871e+18
           ],
-          "coordination_score": 0.8585474520921708,
-          "description": "Accounts IO_0004 and IO_0004: high semantic similarity (0.74), temporal coordination (1.00), shared 3 URL(s), shared 5 hashtag(s)"
+          "coordination_score": 0.6958679469019071,
+          "description": "Accounts 1194833072472182784 and 1.194834786008871e+18: high semantic similarity (1.00), temporal coordination (0.98)"
         },
         {
           "accounts": [
-            "IO_0014",
-            "IO_0014"
+            1194833072472182784,
+            1.194835665961341e+18
           ],
-          "coordination_score": 0.8557085812091828,
-          "description": "Accounts IO_0014 and IO_0014: high semantic similarity (0.73), temporal coordination (1.00), shared 3 URL(s), shared 5 hashtag(s)"
+          "coordination_score": 0.6958679469019071,
+          "description": "Accounts 1194833072472182784 and 1.194835665961341e+18: high semantic similarity (1.00), temporal coordination (0.98)"
         }
       ],
       "account_details": [
         {
-          "accountid": "IO_0001",
+          "accountid": 1194833072472182784,
           "is_io": true,
-          "post_count": 20
+          "post_count": 1
         },
         {
-          "accountid": "IO_0004",
+          "accountid": 1194834786008870912,
           "is_io": true,
-          "post_count": 20
+          "post_count": 1
         },
         {
-          "accountid": "IO_0005",
+          "accountid": 1194835665961340928,
           "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0006",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0013",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0014",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0021",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0022",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0023",
-          "is_io": true,
-          "post_count": 20
+          "post_count": 1
         }
       ],
-      "summary": "Group 5: 9 accounts with avg coordination score 0.611. 9 accounts match IO labels (100.0%). 5 evidence edges found."
+      "summary": "Group 1961: 3 accounts with avg coordination score 0.698. 3 accounts match IO labels (100.0%). 5 evidence edges found."
     },
     {
-      "group_id": 4,
+      "group_id": 1913,
       "accounts": [
-        "IO_0000",
-        "IO_0002",
-        "IO_0003",
-        "IO_0007",
-        "IO_0008",
-        "IO_0009",
-        "IO_0010",
-        "IO_0011",
-        "IO_0012",
-        "IO_0015",
-        "IO_0016",
-        "IO_0017",
-        "IO_0018",
-        "IO_0019",
-        "IO_0020",
-        "IO_0024"
+        1121067716272586752,
+        2214516257,
+        234643876
       ],
-      "num_accounts": 16,
-      "coordination_score": 0.5740322285096399,
-      "suspiciousness_score": 0.892209668552892,
-      "io_ratio": 1.0,
-      "evidence": [
-        {
-          "accounts": [
-            "IO_0007",
-            "IO_0007"
-          ],
-          "coordination_score": 0.9090341746807099,
-          "description": "Accounts IO_0007 and IO_0007: high semantic similarity (0.74), temporal coordination (1.00), shared 3 URL(s), shared 5 hashtag(s)"
-        },
-        {
-          "accounts": [
-            "IO_0018",
-            "IO_0018"
-          ],
-          "coordination_score": 0.9049670338630676,
-          "description": "Accounts IO_0018 and IO_0018: high semantic similarity (0.73), temporal coordination (1.00), shared 3 URL(s), shared 5 hashtag(s)"
-        },
-        {
-          "accounts": [
-            "IO_0009",
-            "IO_0009"
-          ],
-          "coordination_score": 0.899448549747467,
-          "description": "Accounts IO_0009 and IO_0009: high semantic similarity (0.71), temporal coordination (1.00), shared 3 URL(s), shared 5 hashtag(s)"
-        },
-        {
-          "accounts": [
-            "IO_0011",
-            "IO_0011"
-          ],
-          "coordination_score": 0.89937142431736,
-          "description": "Accounts IO_0011 and IO_0011: high semantic similarity (0.71), temporal coordination (1.00), shared 3 URL(s), shared 5 hashtag(s)"
-        },
-        {
-          "accounts": [
-            "IO_0002",
-            "IO_0002"
-          ],
-          "coordination_score": 0.8632580488920212,
-          "description": "Accounts IO_0002 and IO_0002: high semantic similarity (0.75), temporal coordination (1.00), shared 3 URL(s), shared 5 hashtag(s)"
-        }
-      ],
-      "account_details": [
-        {
-          "accountid": "IO_0000",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0002",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0003",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0007",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0008",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0009",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0010",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0011",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0012",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0015",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0016",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0017",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0018",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0019",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0020",
-          "is_io": true,
-          "post_count": 20
-        },
-        {
-          "accountid": "IO_0024",
-          "is_io": true,
-          "post_count": 20
-        }
-      ],
-      "summary": "Group 4: 16 accounts with avg coordination score 0.574. 16 accounts match IO labels (100.0%). 5 evidence edges found."
-    },
-    {
-      "group_id": 0,
-      "accounts": [
-        "CTRL_0000",
-        "CTRL_0001",
-        "CTRL_0002",
-        "CTRL_0005",
-        "CTRL_0006",
-        "CTRL_0007",
-        "CTRL_0008",
-        "CTRL_0009",
-        "CTRL_0010",
-        "CTRL_0011",
-        "CTRL_0012",
-        "CTRL_0013",
-        "CTRL_0015",
-        "CTRL_0016",
-        "CTRL_0017",
-        "CTRL_0020",
-        "CTRL_0022",
-        "CTRL_0023",
-        "CTRL_0024"
-      ],
-      "num_accounts": 19,
-      "coordination_score": 0.377180220157981,
-      "suspiciousness_score": 0.38508389060879783,
+      "num_accounts": 3,
+      "coordination_score": 0.9134128451317419,
+      "suspiciousness_score": 0.9340238535395227,
       "io_ratio": 0.0,
       "evidence": [
         {
           "accounts": [
-            "CTRL_0020",
-            "CTRL_0020"
+            1121067716272586752,
+            1.1210677162725868e+18
           ],
-          "coordination_score": 0.6012751519680023,
-          "description": "Accounts CTRL_0020 and CTRL_0020: high semantic similarity (0.72), temporal coordination (1.00), shared 13 hashtag(s)"
+          "coordination_score": 0.9500000000000001,
+          "description": "Accounts 1121067716272586752 and 1.1210677162725868e+18: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s), shared 2.0 hashtag(s)"
         },
         {
           "accounts": [
-            "CTRL_0011",
-            "CTRL_0011"
+            2214516257,
+            2214516257.0
           ],
-          "coordination_score": 0.5999318510293961,
-          "description": "Accounts CTRL_0011 and CTRL_0011: high semantic similarity (0.71), temporal coordination (1.00), shared 12 hashtag(s)"
+          "coordination_score": 0.9500000000000001,
+          "description": "Accounts 2214516257 and 2214516257.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s), shared 2.0 hashtag(s)"
         },
         {
           "accounts": [
-            "CTRL_0024",
-            "CTRL_0024"
+            234643876,
+            234643876.0
           ],
-          "coordination_score": 0.598738044500351,
-          "description": "Accounts CTRL_0024 and CTRL_0024: high semantic similarity (0.71), temporal coordination (1.00), shared 14 hashtag(s)"
+          "coordination_score": 0.9500000000000001,
+          "description": "Accounts 234643876 and 234643876.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s), shared 2.0 hashtag(s)"
         },
         {
           "accounts": [
-            "CTRL_0016",
-            "CTRL_0016"
+            1121067716272586752,
+            234643876.0
           ],
-          "coordination_score": 0.5973671853542327,
-          "description": "Accounts CTRL_0016 and CTRL_0016: high semantic similarity (0.71), temporal coordination (1.00), shared 15 hashtag(s)"
+          "coordination_score": 0.9046826882694955,
+          "description": "Accounts 1121067716272586752 and 234643876.0: high semantic similarity (1.00), temporal coordination (0.82), shared 1.0 URL(s), shared 2.0 hashtag(s)"
         },
         {
           "accounts": [
-            "CTRL_0009",
-            "CTRL_0009"
+            2214516257,
+            234643876.0
           ],
-          "coordination_score": 0.5973192036151885,
-          "description": "Accounts CTRL_0009 and CTRL_0009: high semantic similarity (0.71), temporal coordination (1.00), shared 14 hashtag(s)"
+          "coordination_score": 0.8791328276434474,
+          "description": "Accounts 2214516257 and 234643876.0: high semantic similarity (1.00), temporal coordination (0.72), shared 1.0 URL(s), shared 2.0 hashtag(s)"
         }
       ],
       "account_details": [
         {
-          "accountid": "CTRL_0000",
+          "accountid": 1121067716272586752,
           "is_io": false,
-          "post_count": 20
+          "post_count": 1
         },
         {
-          "accountid": "CTRL_0001",
+          "accountid": 2214516257,
           "is_io": false,
-          "post_count": 20
+          "post_count": 1
         },
         {
-          "accountid": "CTRL_0002",
+          "accountid": 234643876,
           "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0005",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0006",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0007",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0008",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0009",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0010",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0011",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0012",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0013",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0015",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0016",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0017",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0020",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0022",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0023",
-          "is_io": false,
-          "post_count": 20
-        },
-        {
-          "accountid": "CTRL_0024",
-          "is_io": false,
-          "post_count": 20
+          "post_count": 1
         }
       ],
-      "summary": "Group 0: 19 accounts with avg coordination score 0.377. 0 accounts match IO labels (0.0%). 5 evidence edges found."
+      "summary": "Group 1913: 3 accounts with avg coordination score 0.913. 0 accounts match IO labels (0.0%). 5 evidence edges found."
+    },
+    {
+      "group_id": 1493,
+      "accounts": [
+        312256281,
+        426531390,
+        608583
+      ],
+      "num_accounts": 3,
+      "coordination_score": 0.9118100933265861,
+      "suspiciousness_score": 0.9335430279979757,
+      "io_ratio": 0.0,
+      "evidence": [
+        {
+          "accounts": [
+            312256281,
+            312256281.0
+          ],
+          "coordination_score": 0.9500000417232515,
+          "description": "Accounts 312256281 and 312256281.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s), shared 2.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            426531390,
+            426531390.0
+          ],
+          "coordination_score": 0.9500000417232515,
+          "description": "Accounts 426531390 and 426531390.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s), shared 2.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            608583,
+            608583.0
+          ],
+          "coordination_score": 0.9500000000000001,
+          "description": "Accounts 608583 and 608583.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s), shared 2.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            312256281,
+            608583.0
+          ],
+          "coordination_score": 0.9418040668437528,
+          "description": "Accounts 312256281 and 608583.0: high semantic similarity (1.00), temporal coordination (0.97), shared 1.0 URL(s), shared 2.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            312256281,
+            426531390.0
+          ],
+          "coordination_score": 0.8418534589225024,
+          "description": "Accounts 312256281 and 426531390.0: high semantic similarity (1.00), shared 1.0 URL(s), shared 2.0 hashtag(s)"
+        }
+      ],
+      "account_details": [
+        {
+          "accountid": 312256281,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 426531390,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 608583,
+          "is_io": false,
+          "post_count": 1
+        }
+      ],
+      "summary": "Group 1493: 3 accounts with avg coordination score 0.912. 0 accounts match IO labels (0.0%). 5 evidence edges found."
+    },
+    {
+      "group_id": 1641,
+      "accounts": [
+        2920710155,
+        116864915,
+        39622429
+      ],
+      "num_accounts": 3,
+      "coordination_score": 0.8494436759260875,
+      "suspiciousness_score": 0.9148331027778263,
+      "io_ratio": 0.0,
+      "evidence": [
+        {
+          "accounts": [
+            2920710155,
+            2920710155.0
+          ],
+          "coordination_score": 0.9500000834465028,
+          "description": "Accounts 2920710155 and 2920710155.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s), shared 3.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            116864915,
+            116864915.0
+          ],
+          "coordination_score": 0.9500000834465028,
+          "description": "Accounts 116864915 and 116864915.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s), shared 3.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            39622429,
+            39622429.0
+          ],
+          "coordination_score": 0.9500000834465028,
+          "description": "Accounts 39622429 and 39622429.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s), shared 3.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            2920710155,
+            116864915.0
+          ],
+          "coordination_score": 0.8466616383240108,
+          "description": "Accounts 2920710155 and 116864915.0: high semantic similarity (1.00), shared 1.0 URL(s), shared 3.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            2920710155,
+            39622429.0
+          ],
+          "coordination_score": 0.7000000834465028,
+          "description": "Accounts 2920710155 and 39622429.0: high semantic similarity (1.00), shared 1.0 URL(s), shared 3.0 hashtag(s)"
+        }
+      ],
+      "account_details": [
+        {
+          "accountid": 2920710155,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 116864915,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 39622429,
+          "is_io": false,
+          "post_count": 1
+        }
+      ],
+      "summary": "Group 1641: 3 accounts with avg coordination score 0.849. 0 accounts match IO labels (0.0%). 5 evidence edges found."
+    },
+    {
+      "group_id": 1593,
+      "accounts": [
+        1252109984,
+        2273349448,
+        367871311
+      ],
+      "num_accounts": 3,
+      "coordination_score": 0.8428089554994459,
+      "suspiciousness_score": 0.9128426866498338,
+      "io_ratio": 0.0,
+      "evidence": [
+        {
+          "accounts": [
+            1252109984,
+            1252109984.0
+          ],
+          "coordination_score": 0.9500000000000001,
+          "description": "Accounts 1252109984 and 1252109984.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s), shared 2.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            2273349448,
+            2273349448.0
+          ],
+          "coordination_score": 0.9500000000000001,
+          "description": "Accounts 2273349448 and 2273349448.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s), shared 2.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            367871311,
+            367871311.0
+          ],
+          "coordination_score": 0.9500000000000001,
+          "description": "Accounts 367871311 and 367871311.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s), shared 2.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            1252109984,
+            367871311.0
+          ],
+          "coordination_score": 0.8068537329871818,
+          "description": "Accounts 1252109984 and 367871311.0: high semantic similarity (1.00), shared 1.0 URL(s), shared 2.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            1252109984,
+            2273349448.0
+          ],
+          "coordination_score": 0.7000000000066507,
+          "description": "Accounts 1252109984 and 2273349448.0: high semantic similarity (1.00), shared 1.0 URL(s), shared 2.0 hashtag(s)"
+        }
+      ],
+      "account_details": [
+        {
+          "accountid": 1252109984,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 2273349448,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 367871311,
+          "is_io": false,
+          "post_count": 1
+        }
+      ],
+      "summary": "Group 1593: 3 accounts with avg coordination score 0.843. 0 accounts match IO labels (0.0%). 5 evidence edges found."
+    },
+    {
+      "group_id": 1726,
+      "accounts": [
+        351238879,
+        4832214381,
+        231087895
+      ],
+      "num_accounts": 3,
+      "coordination_score": 0.7972679249269978,
+      "suspiciousness_score": 0.8991803774780993,
+      "io_ratio": 0.0,
+      "evidence": [
+        {
+          "accounts": [
+            231087895,
+            351238879.0
+          ],
+          "coordination_score": 0.7999999165534973,
+          "description": "Accounts 231087895 and 351238879.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            231087895,
+            231087895.0
+          ],
+          "coordination_score": 0.7999999165534973,
+          "description": "Accounts 231087895 and 231087895.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            4832214381,
+            4832214381.0
+          ],
+          "coordination_score": 0.7999999165534973,
+          "description": "Accounts 4832214381 and 4832214381.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            351238879,
+            351238879.0
+          ],
+          "coordination_score": 0.7999999165534973,
+          "description": "Accounts 351238879 and 351238879.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            231087895,
+            4832214381.0
+          ],
+          "coordination_score": 0.7918039416739988,
+          "description": "Accounts 231087895 and 4832214381.0: high semantic similarity (1.00), temporal coordination (0.97), shared 1.0 hashtag(s)"
+        }
+      ],
+      "account_details": [
+        {
+          "accountid": 351238879,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 4832214381,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 231087895,
+          "is_io": false,
+          "post_count": 1
+        }
+      ],
+      "summary": "Group 1726: 3 accounts with avg coordination score 0.797. 0 accounts match IO labels (0.0%). 5 evidence edges found."
+    },
+    {
+      "group_id": 1768,
+      "accounts": [
+        804787452980461568,
+        19632302,
+        467958407
+      ],
+      "num_accounts": 3,
+      "coordination_score": 0.774377488865822,
+      "suspiciousness_score": 0.8923132466597465,
+      "io_ratio": 0.0,
+      "evidence": [
+        {
+          "accounts": [
+            804787452980461568,
+            8.047874529804616e+17
+          ],
+          "coordination_score": 0.8,
+          "description": "Accounts 804787452980461568 and 8.047874529804616e+17: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            19632302,
+            19632302.0
+          ],
+          "coordination_score": 0.8,
+          "description": "Accounts 19632302 and 19632302.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            467958407,
+            467958407.0
+          ],
+          "coordination_score": 0.8,
+          "description": "Accounts 467958407 and 467958407.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            804787452980461568,
+            19632302.0
+          ],
+          "coordination_score": 0.7687933297607369,
+          "description": "Accounts 804787452980461568 and 19632302.0: high semantic similarity (1.00), temporal coordination (0.88), shared 1.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            804787452980461568,
+            467958407.0
+          ],
+          "coordination_score": 0.7512995810045177,
+          "description": "Accounts 804787452980461568 and 467958407.0: high semantic similarity (1.00), temporal coordination (0.81), shared 1.0 hashtag(s)"
+        }
+      ],
+      "account_details": [
+        {
+          "accountid": 804787452980461568,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 19632302,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 467958407,
+          "is_io": false,
+          "post_count": 1
+        }
+      ],
+      "summary": "Group 1768: 3 accounts with avg coordination score 0.774. 0 accounts match IO labels (0.0%). 5 evidence edges found."
+    },
+    {
+      "group_id": 1955,
+      "accounts": [
+        1189743656422592512,
+        1189761833529421824,
+        1189766199179141120
+      ],
+      "num_accounts": 3,
+      "coordination_score": 0.42694906657565557,
+      "suspiciousness_score": 0.8880847199726967,
+      "io_ratio": 1.0,
+      "evidence": [
+        {
+          "accounts": [
+            1189761833529421824,
+            1.1897618335294218e+18
+          ],
+          "coordination_score": 0.549578058719635,
+          "description": "Accounts 1189761833529421824 and 1.1897618335294218e+18: high semantic similarity (0.71), temporal coordination (1.00)"
+        },
+        {
+          "accounts": [
+            1189766199179141120,
+            1.189766199179141e+18
+          ],
+          "coordination_score": 0.549311175942421,
+          "description": "Accounts 1189766199179141120 and 1.189766199179141e+18: high semantic similarity (0.71), temporal coordination (1.00)"
+        },
+        {
+          "accounts": [
+            1189761833529421824,
+            1.189766199179141e+18
+          ],
+          "coordination_score": 0.3978221237746308,
+          "description": "Accounts 1189761833529421824 and 1.189766199179141e+18: high semantic similarity (0.71)"
+        },
+        {
+          "accounts": [
+            1189743656422592512,
+            1.1897618335294218e+18
+          ],
+          "coordination_score": 0.3272113372031936,
+          "description": "Accounts 1189743656422592512 and 1.1897618335294218e+18: high semantic similarity (0.72)"
+        },
+        {
+          "accounts": [
+            1189743656422592512,
+            1.189766199179141e+18
+          ],
+          "coordination_score": 0.3108226372383974,
+          "description": "Accounts 1189743656422592512 and 1.189766199179141e+18: high semantic similarity (0.72)"
+        }
+      ],
+      "account_details": [
+        {
+          "accountid": 1189743656422592512,
+          "is_io": true,
+          "post_count": 76
+        },
+        {
+          "accountid": 1189761833529421824,
+          "is_io": true,
+          "post_count": 86
+        },
+        {
+          "accountid": 1189766199179141120,
+          "is_io": true,
+          "post_count": 92
+        }
+      ],
+      "summary": "Group 1955: 3 accounts with avg coordination score 0.427. 3 accounts match IO labels (100.0%). 5 evidence edges found."
+    },
+    {
+      "group_id": 1817,
+      "accounts": [
+        2878776336,
+        927494000453541888,
+        342334530
+      ],
+      "num_accounts": 3,
+      "coordination_score": 0.7524063271154486,
+      "suspiciousness_score": 0.8857218981346346,
+      "io_ratio": 0.0,
+      "evidence": [
+        {
+          "accounts": [
+            2878776336,
+            2878776336.0
+          ],
+          "coordination_score": 0.8000000417232515,
+          "description": "Accounts 2878776336 and 2878776336.0: high semantic similarity (1.00), temporal coordination (1.00), shared 4.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            927494000453541888,
+            9.274940004535419e+17
+          ],
+          "coordination_score": 0.8000000417232515,
+          "description": "Accounts 927494000453541888 and 9.274940004535419e+17: high semantic similarity (1.00), temporal coordination (1.00), shared 4.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            342334530,
+            342334530.0
+          ],
+          "coordination_score": 0.8000000417232515,
+          "description": "Accounts 342334530 and 342334530.0: high semantic similarity (1.00), temporal coordination (1.00), shared 4.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            2878776336,
+            9.274940004535419e+17
+          ],
+          "coordination_score": 0.7800111453805822,
+          "description": "Accounts 2878776336 and 9.274940004535419e+17: high semantic similarity (1.00), temporal coordination (0.92), shared 4.0 hashtag(s)"
+        },
+        {
+          "accounts": [
+            927494000453541888,
+            342334530.0
+          ],
+          "coordination_score": 0.6720944093897981,
+          "description": "Accounts 927494000453541888 and 342334530.0: high semantic similarity (1.00), shared 4.0 hashtag(s)"
+        }
+      ],
+      "account_details": [
+        {
+          "accountid": 2878776336,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 927494000453541888,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 342334530,
+          "is_io": false,
+          "post_count": 1
+        }
+      ],
+      "summary": "Group 1817: 3 accounts with avg coordination score 0.752. 0 accounts match IO labels (0.0%). 5 evidence edges found."
+    },
+    {
+      "group_id": 1733,
+      "accounts": [
+        717927353268232192,
+        33008657,
+        17563531
+      ],
+      "num_accounts": 3,
+      "coordination_score": 0.7250000000000001,
+      "suspiciousness_score": 0.8775,
+      "io_ratio": 0.0,
+      "evidence": [
+        {
+          "accounts": [
+            717927353268232192,
+            7.179273532682322e+17
+          ],
+          "coordination_score": 0.8500000000000001,
+          "description": "Accounts 717927353268232192 and 7.179273532682322e+17: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s)"
+        },
+        {
+          "accounts": [
+            33008657,
+            33008657.0
+          ],
+          "coordination_score": 0.8500000000000001,
+          "description": "Accounts 33008657 and 33008657.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s)"
+        },
+        {
+          "accounts": [
+            17563531,
+            17563531.0
+          ],
+          "coordination_score": 0.8500000000000001,
+          "description": "Accounts 17563531 and 17563531.0: high semantic similarity (1.00), temporal coordination (1.00), shared 1.0 URL(s)"
+        },
+        {
+          "accounts": [
+            717927353268232192,
+            17563531.0
+          ],
+          "coordination_score": 0.6000000000000001,
+          "description": "Accounts 717927353268232192 and 17563531.0: high semantic similarity (1.00), shared 1.0 URL(s)"
+        },
+        {
+          "accounts": [
+            717927353268232192,
+            33008657.0
+          ],
+          "coordination_score": 0.6000000000000001,
+          "description": "Accounts 717927353268232192 and 33008657.0: high semantic similarity (1.00), shared 1.0 URL(s)"
+        }
+      ],
+      "account_details": [
+        {
+          "accountid": 717927353268232192,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 33008657,
+          "is_io": false,
+          "post_count": 1
+        },
+        {
+          "accountid": 17563531,
+          "is_io": false,
+          "post_count": 2
+        }
+      ],
+      "summary": "Group 1733: 3 accounts with avg coordination score 0.725. 0 accounts match IO labels (0.0%). 5 evidence edges found."
     }
   ]
 }

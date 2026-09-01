@@ -190,6 +190,10 @@ def main():
                        help="Campaign to analyze (e.g., Armenia, China_1)")
     parser.add_argument("--sample", action="store_true",
                        help="Use/create sample data for testing")
+    parser.add_argument("--convert", action="store_true",
+                       help="Download and convert Zenodo IO dataset to pipeline format")
+    parser.add_argument("--convert-max-posts", type=int, default=None,
+                       help="Max posts to convert per file (for quick testing)")
     parser.add_argument("--log-level", type=str, default="INFO",
                        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                        help="Logging level")
@@ -205,10 +209,33 @@ def main():
     if args.campaign:
         config["data"]["campaign"] = args.campaign
 
+    logger = logging.getLogger(__name__)
+
+    # Convert Zenodo dataset if requested
+    if args.convert:
+        from src.data.convert_zenodo import download_and_convert, CAMPAIGNS
+        campaign = config["data"]["campaign"]
+        if campaign not in CAMPAIGNS and campaign != "all":
+            logger.error(
+                f"Campaign '{campaign}' not found in Zenodo dataset. "
+                f"Available: {list(CAMPAIGNS.keys())}"
+            )
+            sys.exit(1)
+        campaigns_to_convert = (
+            list(CAMPAIGNS.keys()) if campaign == "all" else [campaign]
+        )
+        for c in campaigns_to_convert:
+            logger.info(f"Converting {c} from Zenodo...")
+            download_and_convert(
+                campaign=c,
+                output_dir=config["data"]["raw_dir"],
+                max_posts=args.convert_max_posts,
+            )
+        logger.info("Conversion complete!")
+
     # Import and run pipeline
     from src.pipeline import CoordinationDetectionPipeline
 
-    logger = logging.getLogger(__name__)
     logger.info("Starting Coordinated Misinformation Network Detection System")
     logger.info(f"Campaign: {config['data']['campaign']}")
     logger.info(f"Using sample data: {args.sample}")

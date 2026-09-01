@@ -1,8 +1,12 @@
 """
-Data loader for the Labeled Information Operations dataset.
+Data loader for Information Operations datasets.
 
-Dataset: "Labeled Datasets for Research on Information Operations"
-Source: https://zenodo.org/records/14141550
+Supported datasets:
+    1. "Labeled Datasets for Research on Information Operations" (CSV)
+       Source: https://zenodo.org/records/14141550
+    2. "Twitter IO in Honduras and UAE" (JSONL -> CSV converted)
+       Source: https://zenodo.org/records/13912659
+       Use: python -m src.data.convert_zenodo --campaign Honduras
 
 Expected CSV columns:
     postid, post_text, application_name, post_language,
@@ -51,13 +55,16 @@ class DataLoader:
         self.seed = config["data"].get("random_seed", 42)
 
     def discover_files(self, campaign: Optional[str] = None) -> List[str]:
-        """Discover CSV files for a given campaign."""
+        """Discover CSV or JSONL files for a given campaign."""
         campaign = campaign or self.campaign
         search_patterns = [
             os.path.join(self.raw_dir, f"{campaign}*", "*.csv"),
             os.path.join(self.raw_dir, f"{campaign}*", "*.CSV"),
+            os.path.join(self.raw_dir, f"{campaign}*", "*.jsonl"),
             os.path.join(self.raw_dir, f"{campaign}*.csv"),
+            os.path.join(self.raw_dir, f"{campaign}*.jsonl"),
             os.path.join(self.raw_dir, "*.csv"),
+            os.path.join(self.raw_dir, "*.jsonl"),
         ]
 
         files = []
@@ -67,10 +74,11 @@ class DataLoader:
                 break
 
         if not files:
-            logger.warning(f"No CSV files found for campaign '{campaign}' "
+            logger.warning(f"No data files found for campaign '{campaign}' "
                          f"in {self.raw_dir}")
         else:
-            logger.info(f"Found {len(files)} CSV files for campaign '{campaign}'")
+            ext = os.path.splitext(files[0])[1]
+            logger.info(f"Found {len(files)} {ext} files for campaign '{campaign}'")
 
         # Limit files for memory management
         if self.max_files and len(files) > self.max_files:
@@ -80,9 +88,13 @@ class DataLoader:
         return files
 
     def load_csv(self, filepath: str) -> pd.DataFrame:
-        """Load a single CSV file with validation."""
+        """Load a single CSV or JSONL file with validation."""
         try:
-            df = pd.read_csv(filepath, low_memory=False)
+            ext = os.path.splitext(filepath)[1].lower()
+            if ext == ".jsonl":
+                df = pd.read_json(filepath, lines=True)
+            else:
+                df = pd.read_csv(filepath, low_memory=False)
             logger.info(f"Loaded {filepath}: {len(df)} rows, {len(df.columns)} columns")
             return df
         except Exception as e:
