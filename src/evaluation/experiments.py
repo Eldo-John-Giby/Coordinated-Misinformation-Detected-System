@@ -10,7 +10,7 @@ Runs:
 import json
 import logging
 import os
-from typing import Dict
+from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -60,3 +60,41 @@ class ExperimentRunner:
         with open(output_path, "w") as f:
             json.dump(config, f, indent=2, default=str)
         logger.info(f"Experiment config saved to {output_path}")
+
+    def run_paraphrase_robustness(
+        self,
+        use_sample: bool = False,
+        n_pairs: int = 200,
+    ) -> Optional[pd.DataFrame]:
+        """Run the paraphrase-robustness experiment.
+
+        Compares bi-encoder vs cross-encoder score stability when
+        coordinated content is paraphrased by an LLM.
+
+        Args:
+            use_sample: Use sample data instead of full dataset.
+            n_pairs: Number of post pairs to test.
+
+        Returns:
+            Summary DataFrame, or None if experiment fails.
+        """
+        try:
+            from src.evaluation.paraphrase_robustness import (
+                ParaphraseRobustnessExperiment,
+            )
+        except ImportError as e:
+            logger.error(
+                f"Cannot import paraphrase robustness experiment: {e}. "
+                f"Make sure all dependencies are installed."
+            )
+            return None
+
+        exp_config = dict(self.config)
+        if "paraphrase_experiment" not in exp_config:
+            exp_config["paraphrase_experiment"] = {}
+        exp_config["paraphrase_experiment"]["n_pairs"] = n_pairs
+        exp_config["experiments"] = {"output_dir": self.output_dir}
+
+        experiment = ParaphraseRobustnessExperiment(exp_config)
+        result = experiment.run(use_sample=use_sample)
+        return result.get("summary")

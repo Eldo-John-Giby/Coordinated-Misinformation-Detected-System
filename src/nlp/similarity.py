@@ -3,9 +3,14 @@ Efficient nearest-neighbor similarity search.
 
 Uses FAISS (preferred) or sklearn NearestNeighbors to find
 semantically similar post pairs without O(N²) comparison.
+
+Also provides CrossEncoderReranker for a retrieve-then-rerank pattern:
+bi-encoder + FAISS retrieves top-k candidates cheaply, then a cross-encoder
+re-scores those pairs with full cross-attention for higher precision.
 """
 
 import logging
+import time
 from typing import Optional, Tuple, List
 
 import numpy as np
@@ -202,3 +207,124 @@ class SimilaritySearch:
 
         logger.info(f"Found {len(pairs_df)} similar account pairs")
         return pairs_df
+
+
+class CrossEncoderReranker:
+    """Re-score bi-encoder candidate pairs with a cross-encoder.
+
+    Cross-encoders process both texts in a single forward pass with full
+    cross-attention, making them much better at recognizing paraphrases
+    than independent bi-encoder embeddings.
+
+    Typical usage in a retrieve-then-rerank pipeline:
+    1. SimilaritySearch.find_similar_pairs() retrieves top-k candidates
+    2. CrossEncoderReranker.rerank() re-scores those candidates
+
+    Example::
+
+        reranker = CrossEncoderReranker(config)
+        reranked_df = reranker.rerank(
+            candidate_pairs_df,
+            texts_a=["post text A", ...],
+            texts_b=["post text B", ...],
+        )
+    """
+
+    def __init__(self, config: dict):
+        self.config = config
+        sim_config = config.get("similarity", {})
+        self.model_name = sim_config.get(
+            "cross_encoder_model", "cross-encoder/nli-deberta-v3-base"
+        )
+        self.batch_size = sim_config.get("cross_encoder_batch_size", 64)
+        self._model = None
+
+    def _load_model(self):
+        """Lazy-load the cross-encoder model."""
+        if self._model is not None:
+            return
+        try:
+            from sentence_transformers import CrossEncoder
+            logger.info(f"Loading cross-encoder model: {self.model_name}")
+            self._model = CrossEncoder(self.model_name, max_length=512)
+            logger.info("Cross-encoder model loaded successfully")
+        except ImportError:
+            raise ImportError(
+                "sentence-transformers is required for CrossEncoderReranker. "
+                "Install it with: pip install sentence-transformers"
+            )
+
+    def _normalize_scores(self, raw_scores: np.ndarray) -> np.ndarray:
+        """Normalize raw model outputs to [0, 1].
+
+        Entailment models (nli-deberta-v3-base) output 3 logits per pair
+        (contradiction, neutral, entailment). We take the entailment logit
+        and apply sigmoid. Paraphrase models output a single logit; we apply
+        sigmoid directly.
+        """
+        if raw_scores.ndim == 2 and raw_scores.shape[1] == 3:
+            # Entailment model: 3 classes -> use entailment column (index 2)
+            import torch.nn.functional as F
+            entailment_logits = raw_scores[:, 2]
+            return F.sigmoid(entailment_logits)
+        elif raw_scores.ndim == 2 and raw_scores.shape[1] == 1:
+            return 1.0 / (1.0 + np.exp(-raw_scores[:, 0]))
+        else:
+            # Already 1D or unexpected shape: apply sigmoid
+            return 1.0 / (1.0 + np.exp(-raw_scores))
+
+    def rerank(
+        self,
+        candidate_df: pd.DataFrame,
+        texts_a: List[str],
+        texts_b: List[str],
+        score_column: str = "semantic_similarity",
+        new_score_column: str = "cross_encoder_score",
+    ) -> pd.DataFrame:
+        """Re-score candidate pairs with the cross-encoder.
+
+        Args:
+            candidate_df: DataFrame with columns post_a/post_b or account_a/account_b
+                and a similarity score column.
+            texts_a: List of text strings corresponding to the first entity in each pair.
+            texts_b: List of text strings corresponding to the second entity in each pair.
+            score_column: Name of the existing bi-encoder score column.
+            new_score_column: Name for the new cross-encoder score column.
+
+        Returns:
+            DataFrame with the new cross-encoder score column added.
+        """
+        self._load_model()
+
+        if candidate_df.empty:
+            candidate_df[new_score_column] = []
+            return candidate_df
+
+        n_pairs = len(texts_a)
+        assert len(texts_b) == n_pairs, (
+            f"texts_a and texts_b must have same length, got {n_pairs} vs {len(texts_b)}"
+        )
+
+        logger.info(
+            f"Cross-encoder reranking {n_pairs} pairs with model {self.model_name}"
+        )
+        t0 = time.time()
+
+        # Batch inference
+        raw_scores = self._model.predict(
+            list(zip(texts_a, texts_b)),
+            batch_size=self.batch_size,
+            show_progress_bar=n_pairs > 100,
+        )
+        raw_scores = np.asarray(raw_scores)
+        scores = self._normalize_scores(raw_scores)
+
+        elapsed = time.time() - t0
+        logger.info(
+            f"Cross-encoder reranked {n_pairs} pairs in {elapsed:.2f}s "
+            f"({n_pairs / max(elapsed, 0.001):.1f} pairs/sec)"
+        )
+
+        result = candidate_df.copy()
+        result[new_score_column] = scores
+        return result

@@ -197,6 +197,11 @@ def main():
     parser.add_argument("--log-level", type=str, default="INFO",
                        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                        help="Logging level")
+    parser.add_argument("--experiment", type=str, default=None,
+                       choices=["paraphrase_robustness"],
+                       help="Run a specific experiment instead of the full pipeline")
+    parser.add_argument("--n-pairs", type=int, default=200,
+                       help="Number of pairs for paraphrase robustness experiment")
 
     args = parser.parse_args()
 
@@ -232,6 +237,20 @@ def main():
                 max_posts=args.convert_max_posts,
             )
         logger.info("Conversion complete!")
+
+    # Run a specific experiment if requested
+    if args.experiment == "paraphrase_robustness":
+        logger.info("Running paraphrase robustness experiment...")
+        from src.evaluation.experiments import ExperimentRunner
+        runner = ExperimentRunner(config)
+        summary = runner.run_paraphrase_robustness(
+            use_sample=args.sample,
+            n_pairs=args.n_pairs,
+        )
+        if summary is not None:
+            logger.info(f"\n{summary.to_string(index=False)}")
+        logger.info("\nExperiment complete. Results saved to results/ directory.")
+        return
 
     # Import and run pipeline
     from src.pipeline import CoordinationDetectionPipeline

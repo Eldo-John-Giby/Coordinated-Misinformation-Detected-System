@@ -29,7 +29,7 @@ from torch_geometric.data import Data
 from src.data.loader import DataLoader, create_sample_dataset
 from src.data.preprocessing import Preprocessor
 from src.nlp.embeddings import EmbeddingModel
-from src.nlp.similarity import SimilaritySearch
+from src.nlp.similarity import SimilaritySearch, CrossEncoderReranker
 from src.features.semantic import SemanticFeatures
 from src.features.temporal import TemporalFeatures
 from src.features.network import NetworkFeatures
@@ -112,16 +112,73 @@ class CoordinationDetectionPipeline:
             embeddings_matrix, account_ids, k=self.config.get("similarity", {}).get("k_neighbors", 20)
         )
 
+        # Cross-encoder reranking (optional)
+        crossencoder_scores = {}
+        use_cross_encoder = self.config.get("similarity", {}).get(
+            "use_cross_encoder_rerank", False
+        )
+        if use_cross_encoder and not account_similarities.empty:
+            logger.info("\n[Stage 4b] Cross-encoder reranking...")
+            reranker = CrossEncoderReranker(self.config)
+
+            # Build text lookup: account_id -> representative post text
+            # Use the first (non-empty) post text per account
+            account_texts = {}
+            for acc_id, group in df.groupby("accountid"):
+                non_empty = group["clean_text"][
+                    group["clean_text"].astype(str).str.strip().str.len() > 0
+                ]
+                if len(non_empty) > 0:
+                    account_texts[acc_id] = non_empty.iloc[0]
+                else:
+                    account_texts[acc_id] = ""
+
+            # Prepare texts for each candidate pair
+            texts_a = [
+                account_texts.get(row["account_a"], "")
+                for _, row in account_similarities.iterrows()
+            ]
+            texts_b = [
+                account_texts.get(row["account_b"], "")
+                for _, row in account_similarities.iterrows()
+            ]
+
+            reranked_df = reranker.rerank(
+                account_similarities,
+                texts_a=texts_a,
+                texts_b=texts_b,
+                score_column="similarity",
+                new_score_column="cross_encoder_score",
+            )
+            # Build cross-encoder scores dict
+            crossencoder_scores = {}
+            for _, row in reranked_df.iterrows():
+                pair_key = tuple(sorted([row["account_a"], row["account_b"]]))
+                crossencoder_scores[pair_key] = row["cross_encoder_score"]
+
         # Stage 5: Compute edge features
         logger.info("\n[Stage 5] Computing edge features...")
+        use_ce_for_coordination = use_cross_encoder and bool(crossencoder_scores)
         if not account_similarities.empty:
             account_pairs = list(zip(
                 account_similarities["account_a"],
                 account_similarities["account_b"]
             ))
-            semantic_scores = {
+            raw_biencoder_scores = {
                 tuple(sorted([row["account_a"], row["account_b"]])): row["similarity"]
                 for _, row in account_similarities.iterrows()
+            }
+            # Merge bi-encoder + cross-encoder scores; the active semantic_similarity
+            # key will be whichever the config selects for the coordination formula
+            merged = self.semantic_features.merge_semantic_scores(
+                biencoder_scores=raw_biencoder_scores,
+                crossencoder_scores=crossencoder_scores,
+                use_cross_encoder=use_ce_for_coordination,
+            )
+            # Extract the active score for edge feature computation
+            semantic_scores = {
+                pair_key: entry["semantic_similarity"]
+                for pair_key, entry in merged.items()
             }
         else:
             # If no similar pairs, use top accounts by post count

@@ -63,6 +63,17 @@ similarity:
   # Use FAISS index type (flat, ivf, pq)
   faiss_index_type: "flat"
 
+  # Cross-encoder reranking (retrieve-then-rerank pattern)
+  # When true, top-k bi-encoder candidates are re-scored with a cross-encoder
+  # for higher precision on paraphrased content
+  use_cross_encoder_rerank: true
+  # Cross-encoder model: entailment-based or paraphrase-based
+  cross_encoder_model: "cross-encoder/nli-deberta-v3-base"
+  # Batch size for cross-encoder inference (affects GPU memory / speed)
+  cross_encoder_batch_size: 64
+  # Number of FAISS candidates per post to rerank (reduces from k_neighbors)
+  cross_encoder_rerank_k: 20
+
 # ============================================================
 # TEMPORAL CONFIGURATION
 # ============================================================
@@ -234,6 +245,17 @@ experiments:
   cross_campaign: false
   # Output directory for experiment results
   output_dir: "results"
+
+# ============================================================
+# PARAPHRASE ROBUSTNESS EXPERIMENT
+# ============================================================
+paraphrase_experiment:
+  # Number of coordinated post pairs to test
+  n_pairs: 200
+  # Minimum bi-encoder score to include a pair (high-confidence coordination)
+  min_biencoder_score: 0.7
+  # Anthropic model for paraphrasing
+  paraphrase_model: "claude-sonnet-4-6"
 
 # ============================================================
 # STREAMLIT CONFIGURATION

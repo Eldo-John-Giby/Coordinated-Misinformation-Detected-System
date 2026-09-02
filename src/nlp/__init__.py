@@ -1,4 +1,4 @@
 from .embeddings import EmbeddingModel
-from .similarity import SimilaritySearch
+from .similarity import SimilaritySearch, CrossEncoderReranker
 
-__all__ = ["EmbeddingModel", "SimilaritySearch"]
+__all__ = ["EmbeddingModel", "SimilaritySearch", "CrossEncoderReranker"]
