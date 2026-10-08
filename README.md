@@ -151,7 +151,12 @@ coordination_score = w_sem × semantic_score
 | Repost | 0.10 |
 | Mention | 0.05 |
 
-Weights are configurable and can be learned via logistic regression.
+Weights are configurable in `configs/config.yaml` and **fixed by default**.
+A learned-weights mode exists (`EdgeFeatureExtractor.learn_weights`, item 19):
+when ground-truth IO/control labels are available it fits the six signal
+scores with logistic regression and normalizes the weights to sum to 1.0;
+when labels are missing or degenerate it returns `None` and the pipeline
+falls back to the fixed config weights.
 
 ### Edge Features
 Each edge carries:
@@ -218,7 +223,11 @@ While temporally defensible, the dataset spans 6-12 years per campaign. A strict
 - Community Purity
 
 ### Model Comparison
-All methods are evaluated on the same test split:
+All methods are evaluated on the SAME canonical test split (item 20): one
+fixed 70/15/15 account-level split (seed 42) - threshold, Louvain,
+Random Forest, Logistic Regression, GCN and GraphSAGE all score on identical
+held-out test indices, so `results/model_comparison.csv` rows are directly
+comparable.
 
 | Model | Accuracy | F1 | ROC-AUC |
 |-------|----------|-----|---------|
@@ -254,8 +263,11 @@ Explanation Methods:
 
 ### GNN Explainability
 - Feature ablation study
-- Permutation importance on node features
-- GNNExplainer (when installed)
+- Permutation importance over the six coordination signals
+  (implemented in `_run_explainability`, item 22)
+- GNNExplainer over the trained GCN via `torch_geometric.explain`
+  (implemented when torch_geometric is installed; see config
+  `explainability.use_gnnexplainer`, item 22)
 
 ## 12. Ablation Study
 

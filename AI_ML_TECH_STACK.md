@@ -27,7 +27,11 @@
   - Repeat for `num_layers` (default: 2)
   - Final SAGEConv output layer (no activation)
 - **Default config:** hidden_channels=64, dropout=0.5, lr=0.001, epochs=100, aggregator="mean"
-- **Purpose:** Node-level classification; uses neighbor sampling/aggregation for scalability
+- **Purpose:** Node-level classification; **trained full-batch** on the entire graph
+  (all node embeddings are updated in each forward pass; there is no
+  `NeighborLoader`/mini-batch neighborhood sampling — see `train()` in
+  `src/models/graphsage.py`). The `SAGEConv` layers aggregate over each node's
+  full neighborhood every step, which is exact but memory-bound on very large graphs.
 - **Techniques:** Same training regime as GCN (early stopping, class-weighted loss)
 
 ---

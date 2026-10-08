@@ -1,0 +1,363 @@
+2026-09-09 12:44:10 [INFO] root: Loaded config from configs\config.yaml
+2026-09-09 12:44:49 [INFO] __main__: Starting Coordinated Misinformation Network Detection System
+2026-09-09 12:44:49 [INFO] __main__: Campaign: Honduras
+2026-09-09 12:44:49 [INFO] __main__: Using sample data: False
+2026-09-09 12:44:49 [INFO] src.nlp.embeddings: Using CPU for embeddings
+2026-09-09 12:44:49 [INFO] src.pipeline: ============================================================
+2026-09-09 12:44:49 [INFO] src.pipeline: COORDINATED MISINFORMATION NETWORK DETECTION SYSTEM
+2026-09-09 12:44:49 [INFO] src.pipeline: ============================================================
+2026-09-09 12:44:49 [INFO] src.pipeline: 
+[Stage 1] Loading data...
+2026-09-09 12:44:49 [INFO] src.data.loader: Found 1 .csv files for campaign 'Honduras'
+2026-09-09 12:44:50 [INFO] src.data.loader: Loaded data/raw\Honduras\honduras_io.csv: 32000 rows, 19 columns
+2026-09-09 12:44:50 [INFO] src.data.loader: Canonicalized account IDs to string dtype (32000 rows)
+2026-09-09 12:44:50 [INFO] src.data.loader: Total loaded: 32000 posts for campaign 'Honduras'
+2026-09-09 12:44:50 [WARNING] src.pipeline: RUNNING ON SYNTHETIC DATA - results are not real analysis output and will be tagged data_source=synthetic
+2026-09-09 12:44:50 [INFO] src.pipeline: Dataset info: {
+  "total_posts": 32000,
+  "columns": [
+    "postid",
+    "post_text",
+    "application_name",
+    "post_language",
+    "in_reply_to_postid",
+    "in_reply_to_accountid",
+    "post_time",
+    "accountid",
+    "account_profile_description",
+    "follower_count",
+    "following_count",
+    "account_creation_date",
+    "is_repost",
+    "reposted_accountid",
+    "reposted_postid",
+    "hashtags",
+    "urls",
+    "account_mentions",
+    "is_control"
+  ],
+  "dtypes": {
+    "postid": "int64",
+    "post_text": "object",
+    "application_name": "object",
+    "post_language": "object",
+    "in_reply_to_postid": "float64",
+    "in_reply_to_accountid": "float64",
+    "post_time": "object",
+    "accountid": "object",
+    "account_profile_description": "float64",
+    "follower_count": "int64",
+    "following_count": "int64",
+    "account_creation_date": "object",
+    "is_repost": "bool",
+    "reposted_accountid": "object",
+    "reposted_postid": "float64",
+    "hashtags": "object",
+    "urls": "object",
+    "account_mentions": "object",
+    "is_control": "bool"
+  },
+  "missing_values": {
+    "postid": 0,
+    "post_text": 0,
+    "application_name": 0,
+    "post_language": 0,
+    "in_reply_to_postid": 20142,
+    "in_reply_to_accountid": 20039,
+    "post_time": 0,
+    "accountid": 0,
+    "account_profile_description": 32000,
+    "follower_count": 0,
+    "following_count": 0,
+    "account_creation_date": 0,
+    "is_repost": 0,
+    "reposted_accountid": 14461,
+    "reposted_postid": 14461,
+    "hashtags": 23173,
+    "urls": 28627,
+    "account_mentions": 2263,
+    "is_control": 0
+  },
+  "unique_accounts": 3733,
+  "control_distribution": {
+    "false": 20000,
+    "true": 12000
+  },
+  "time_range": {
+    "start": "2019-09-10 18:14:00+00:00",
+    "end": "2020-01-08 23:54:00+00:00"
+  },
+  "hashtag_coverage": 0.27584375,
+  "url_coverage": 0.10540625
+}
+2026-09-09 12:44:50 [INFO] src.pipeline: 
+[Stage 2] Preprocessing...
+2026-09-09 12:44:50 [INFO] src.data.preprocessing: Starting preprocessing. Input shape: (32000, 19)
+2026-09-09 12:44:50 [INFO] src.data.preprocessing: Schema validation passed. Shape: (32000, 19)
+2026-09-09 12:44:50 [INFO] src.data.preprocessing: Removed 17 malformed records (0.1%)
+2026-09-09 12:44:51 [INFO] src.data.preprocessing: Parsed timestamps. Range: 2019-09-10 18:14:00+00:00 to 2020-01-08 23:54:00+00:00
+2026-09-09 12:44:52 [INFO] src.data.preprocessing: Identified 17539 reposts (54.8%)
+2026-09-09 12:44:52 [INFO] src.data.preprocessing: Built account mappings: 3733 unique accounts
+2026-09-09 12:44:52 [INFO] src.data.preprocessing: Account labels: 1278 IO accounts, 2455 control accounts
+2026-09-09 12:44:52 [INFO] src.data.preprocessing: Preprocessing complete. Output shape: (31983, 25)
+2026-09-09 12:44:52 [INFO] src.pipeline: 
+[Stage 3] Computing NLP embeddings...
+2026-09-09 12:45:02 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-09-09 12:45:02 [WARNING] huggingface_hub.utils._http: Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+2026-09-09 12:45:02 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/modules.json "HTTP/1.1 200 OK"
+2026-09-09 12:45:02 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:45:02 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config_sentence_transformers.json "HTTP/1.1 200 OK"
+2026-09-09 12:45:02 [INFO] sentence_transformers.base.model: Loading SentenceTransformer model from sentence-transformers/all-MiniLM-L6-v2.
+2026-09-09 12:45:02 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:45:02 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config_sentence_transformers.json "HTTP/1.1 200 OK"
+2026-09-09 12:45:02 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:45:03 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/README.md "HTTP/1.1 200 OK"
+2026-09-09 12:45:03 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:45:03 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/modules.json "HTTP/1.1 200 OK"
+2026-09-09 12:45:04 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/sentence_bert_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:45:04 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/sentence_bert_config.json "HTTP/1.1 200 OK"
+2026-09-09 12:45:04 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+2026-09-09 12:45:04 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:45:04 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|##########| 103/103 [00:00<00:00, 1669.25it/s]
+2026-09-09 12:45:05 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-09-09 12:45:05 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-09 12:45:05 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-09 12:45:06 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-09 12:45:06 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:45:06 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-09-09 12:45:06 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:45:06 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json "HTTP/1.1 200 OK"
+2026-09-09 12:45:07 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:45:07 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json "HTTP/1.1 200 OK"
+2026-09-09 12:45:07 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:45:07 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-09-09 12:45:07 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-09 12:45:07 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-09 12:45:08 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/1_Pooling/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:45:08 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/1_Pooling%2Fconfig.json "HTTP/1.1 200 OK"
+2026-09-09 12:45:08 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/2_Normalize/config.json "HTTP/1.1 404 Not Found"
+2026-09-09 12:45:08 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2 "HTTP/1.1 200 OK"
+2026-09-09 12:45:08 [INFO] src.nlp.embeddings: Loaded model: sentence-transformers/all-MiniLM-L6-v2 on cpu
+Batches:   0%|          | 0/125 [00:00<?, ?it/s]Batches:   1%|          | 1/125 [00:13<28:42, 13.89s/it]Batches:   2%|1         | 2/125 [00:19<18:45,  9.15s/it]Batches:   2%|2         | 3/125 [00:25<15:00,  7.38s/it]Batches:   3%|3         | 4/125 [00:29<12:53,  6.39s/it]Batches:   4%|4         | 5/125 [00:35<11:54,  5.96s/it]Batches:   5%|4         | 6/125 [00:39<10:47,  5.44s/it]Batches:   6%|5         | 7/125 [00:46<11:33,  5.87s/it]Batches:   6%|6         | 8/125 [00:50<10:19,  5.30s/it]Batches:   7%|7         | 9/125 [00:54<09:46,  5.06s/it]Batches:   8%|8         | 10/125 [00:58<09:02,  4.72s/it]Batches:   9%|8         | 11/125 [01:02<08:26,  4.45s/it]Batches:  10%|9         | 12/125 [01:06<07:50,  4.16s/it]Batches:  10%|#         | 13/125 [01:09<07:22,  3.95s/it]Batches:  11%|#1        | 14/125 [01:12<06:56,  3.75s/it]Batches:  12%|#2        | 15/125 [01:16<06:44,  3.68s/it]Batches:  13%|#2        | 16/125 [01:19<06:21,  3.50s/it]Batches:  14%|#3        | 17/125 [01:22<06:06,  3.40s/it]Batches:  14%|#4        | 18/125 [01:25<05:50,  3.28s/it]Batches:  15%|#5        | 19/125 [01:28<05:36,  3.18s/it]Batches:  16%|#6        | 20/125 [01:31<05:36,  3.21s/it]Batches:  17%|#6        | 21/125 [01:34<05:28,  3.16s/it]Batches:  18%|#7        | 22/125 [01:38<05:24,  3.15s/it]Batches:  18%|#8        | 23/125 [01:41<05:18,  3.13s/it]Batches:  19%|#9        | 24/125 [01:44<05:12,  3.09s/it]Batches:  20%|##        | 25/125 [01:47<05:03,  3.03s/it]Batches:  21%|##        | 26/125 [01:50<05:01,  3.05s/it]Batches:  22%|##1       | 27/125 [01:53<04:55,  3.02s/it]Batches:  22%|##2       | 28/125 [01:56<04:55,  3.05s/it]Batches:  23%|##3       | 29/125 [01:59<04:53,  3.06s/it]Batches:  24%|##4       | 30/125 [02:02<04:48,  3.04s/it]Batches:  25%|##4       | 31/125 [02:05<04:47,  3.06s/it]Batches:  26%|##5       | 32/125 [02:08<04:45,  3.07s/it]Batches:  26%|##6       | 33/125 [02:11<04:34,  2.98s/it]Batches:  27%|##7       | 34/125 [02:14<04:33,  3.00s/it]Batches:  28%|##8       | 35/125 [02:17<04:31,  3.02s/it]Batches:  29%|##8       | 36/125 [02:20<04:21,  2.94s/it]Batches:  30%|##9       | 37/125 [02:23<04:19,  2.95s/it]Batches:  30%|###       | 38/125 [02:26<04:25,  3.05s/it]Batches:  31%|###1      | 39/125 [02:29<04:20,  3.02s/it]Batches:  32%|###2      | 40/125 [02:32<04:14,  2.99s/it]Batches:  33%|###2      | 41/125 [02:35<04:09,  2.97s/it]Batches:  34%|###3      | 42/125 [02:37<04:02,  2.92s/it]Batches:  34%|###4      | 43/125 [02:41<04:24,  3.23s/it]Batches:  35%|###5      | 44/125 [02:44<03:53,  2.88s/it]Batches:  36%|###6      | 45/125 [02:46<03:33,  2.67s/it]Batches:  37%|###6      | 46/125 [02:48<03:16,  2.49s/it]Batches:  38%|###7      | 47/125 [02:50<03:03,  2.35s/it]Batches:  38%|###8      | 48/125 [02:52<02:53,  2.25s/it]Batches:  39%|###9      | 49/125 [02:54<02:44,  2.17s/it]Batches:  40%|####      | 50/125 [02:56<02:40,  2.15s/it]Batches:  41%|####      | 51/125 [02:58<02:36,  2.11s/it]Batches:  42%|####1     | 52/125 [03:00<02:33,  2.10s/it]Batches:  42%|####2     | 53/125 [03:02<02:31,  2.10s/it]Batches:  43%|####3     | 54/125 [03:04<02:24,  2.04s/it]Batches:  44%|####4     | 55/125 [03:06<02:24,  2.07s/it]Batches:  45%|####4     | 56/125 [03:08<02:23,  2.08s/it]Batches:  46%|####5     | 57/125 [03:10<02:15,  1.99s/it]Batches:  46%|####6     | 58/125 [03:12<02:14,  2.01s/it]Batches:  47%|####7     | 59/125 [03:14<02:12,  2.01s/it]Batches:  48%|####8     | 60/125 [03:16<02:11,  2.03s/it]Batches:  49%|####8     | 61/125 [03:18<02:10,  2.04s/it]Batches:  50%|####9     | 62/125 [03:20<02:08,  2.04s/it]Batches:  50%|#####     | 63/125 [03:22<02:06,  2.04s/it]Batches:  51%|#####1    | 64/125 [03:24<02:04,  2.04s/it]Batches:  52%|#####2    | 65/125 [03:26<02:03,  2.05s/it]Batches:  53%|#####2    | 66/125 [03:28<02:00,  2.05s/it]Batches:  54%|#####3    | 67/125 [03:30<01:58,  2.05s/it]Batches:  54%|#####4    | 68/125 [03:33<01:57,  2.06s/it]Batches:  55%|#####5    | 69/125 [03:35<01:55,  2.06s/it]Batches:  56%|#####6    | 70/125 [03:37<01:51,  2.03s/it]Batches:  57%|#####6    | 71/125 [03:39<01:50,  2.04s/it]Batches:  58%|#####7    | 72/125 [03:41<01:46,  2.00s/it]Batches:  58%|#####8    | 73/125 [03:42<01:42,  1.98s/it]Batches:  59%|#####9    | 74/125 [03:44<01:39,  1.96s/it]Batches:  60%|######    | 75/125 [03:46<01:36,  1.92s/it]Batches:  61%|######    | 76/125 [03:48<01:32,  1.89s/it]Batches:  62%|######1   | 77/125 [03:50<01:30,  1.88s/it]Batches:  62%|######2   | 78/125 [03:52<01:28,  1.87s/it]Batches:  63%|######3   | 79/125 [04:00<02:47,  3.63s/it]Batches:  64%|######4   | 80/125 [04:01<02:18,  3.07s/it]Batches:  65%|######4   | 81/125 [04:09<03:15,  4.44s/it]Batches:  66%|######5   | 82/125 [04:11<02:37,  3.67s/it]Batches:  66%|######6   | 83/125 [04:12<02:09,  3.08s/it]Batches:  67%|######7   | 84/125 [04:15<02:03,  3.02s/it]Batches:  68%|######8   | 85/125 [04:17<01:44,  2.62s/it]Batches:  69%|######8   | 86/125 [04:19<01:29,  2.31s/it]Batches:  70%|######9   | 87/125 [04:20<01:20,  2.13s/it]Batches:  70%|#######   | 88/125 [04:22<01:12,  1.97s/it]Batches:  71%|#######1  | 89/125 [04:23<01:05,  1.83s/it]Batches:  72%|#######2  | 90/125 [04:25<01:02,  1.77s/it]Batches:  73%|#######2  | 91/125 [04:27<00:58,  1.71s/it]Batches:  74%|#######3  | 92/125 [04:28<00:55,  1.68s/it]Batches:  74%|#######4  | 93/125 [04:30<00:52,  1.66s/it]Batches:  75%|#######5  | 94/125 [04:32<00:53,  1.73s/it]Batches:  76%|#######6  | 95/125 [04:33<00:51,  1.73s/it]Batches:  77%|#######6  | 96/125 [04:35<00:48,  1.68s/it]Batches:  78%|#######7  | 97/125 [04:36<00:44,  1.60s/it]Batches:  78%|#######8  | 98/125 [04:38<00:42,  1.57s/it]Batches:  79%|#######9  | 99/125 [04:39<00:40,  1.54s/it]Batches:  80%|########  | 100/125 [04:41<00:37,  1.50s/it]Batches:  81%|########  | 101/125 [04:42<00:34,  1.44s/it]Batches:  82%|########1 | 102/125 [04:44<00:32,  1.43s/it]Batches:  82%|########2 | 103/125 [04:45<00:30,  1.40s/it]Batches:  83%|########3 | 104/125 [04:46<00:29,  1.38s/it]Batches:  84%|########4 | 105/125 [04:48<00:27,  1.39s/it]Batches:  85%|########4 | 106/125 [04:49<00:26,  1.37s/it]Batches:  86%|########5 | 107/125 [04:50<00:23,  1.33s/it]Batches:  86%|########6 | 108/125 [04:51<00:21,  1.27s/it]Batches:  87%|########7 | 109/125 [04:52<00:19,  1.23s/it]Batches:  88%|########8 | 110/125 [04:54<00:18,  1.21s/it]Batches:  89%|########8 | 111/125 [04:55<00:16,  1.20s/it]Batches:  90%|########9 | 112/125 [04:56<00:14,  1.12s/it]Batches:  90%|######### | 113/125 [04:57<00:12,  1.07s/it]Batches:  91%|#########1| 114/125 [04:58<00:11,  1.01s/it]Batches:  92%|#########2| 115/125 [04:59<00:12,  1.28s/it]Batches:  93%|#########2| 116/125 [05:00<00:10,  1.13s/it]Batches:  94%|#########3| 117/125 [05:01<00:08,  1.02s/it]Batches:  94%|#########4| 118/125 [05:02<00:06,  1.08it/s]Batches:  95%|#########5| 119/125 [05:02<00:05,  1.17it/s]Batches:  96%|#########6| 120/125 [05:03<00:04,  1.22it/s]Batches:  97%|#########6| 121/125 [05:04<00:03,  1.31it/s]Batches:  98%|#########7| 122/125 [05:04<00:02,  1.45it/s]Batches:  98%|#########8| 123/125 [05:05<00:01,  1.63it/s]Batches:  99%|#########9| 124/125 [05:05<00:00,  1.83it/s]Batches: 100%|##########| 125/125 [05:05<00:00,  2.12it/s]Batches: 100%|##########| 125/125 [05:05<00:00,  2.45s/it]
+2026-09-09 12:50:15 [INFO] src.nlp.embeddings: Computed embeddings: shape=(31983, 384)
+2026-09-09 12:50:15 [INFO] src.pipeline: 
+[Stage 4] Post-level FAISS retrieval...
+2026-09-09 12:50:15 [INFO] faiss.loader: Loading faiss with AVX2 support.
+2026-09-09 12:50:15 [INFO] faiss.loader: Could not load library with AVX2 support due to:
+ModuleNotFoundError("No module named 'faiss.swigfaiss_avx2'")
+2026-09-09 12:50:15 [INFO] faiss.loader: Loading faiss.
+2026-09-09 12:50:15 [INFO] faiss.loader: Successfully loaded faiss.
+2026-09-09 12:50:15 [INFO] src.nlp.similarity: Built FAISS index (flat): 31983 vectors
+2026-09-09 12:50:30 [INFO] src.nlp.similarity: Post-level retrieval: 478649 candidate post pairs across 264062 account pairs (k=20, retrieval_floor=0.300)
+2026-09-09 12:50:48 [INFO] src.features.semantic: Aggregated 478649 post-pair candidates into 264062 account pairs (top_3 post pairs kept per pair)
+2026-09-09 12:50:48 [INFO] src.pipeline: 
+[Stage 4b] Cross-encoder reranking matched post pairs...
+2026-09-09 12:51:14 [INFO] src.nlp.similarity: Loading cross-encoder model: cross-encoder/nli-deberta-v3-base
+2026-09-09 12:51:14 [INFO] sentence_transformers.base.model: No device provided, using cpu
+2026-09-09 12:51:15 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/modules.json "HTTP/1.1 404 Not Found"
+2026-09-09 12:51:15 [INFO] sentence_transformers.base.model: No modules.json found for cross-encoder/nli-deberta-v3-base, initializing a new CrossEncoder model.
+2026-09-09 12:51:15 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/cross-encoder/nli-deberta-v3-base "HTTP/1.1 200 OK"
+2026-09-09 12:51:16 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:51:16 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/nli-deberta-v3-base/6c749ce3425cd33b46d187e45b92bbf96ee12ec7/config.json "HTTP/1.1 200 OK"
+2026-09-09 12:51:16 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
+2026-09-09 12:51:16 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 12:51:16 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/nli-deberta-v3-base/6c749ce3425cd33b46d187e45b92bbf96ee12ec7/config.json "HTTP/1.1 200 OK"
+2026-09-09 12:51:17 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/model.safetensors "HTTP/1.1 302 Found"
+2026-09-09 12:55:19 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/cross-encoder/nli-deberta-v3-base/xet-read-token/6c749ce3425cd33b46d187e45b92bbf96ee12ec7 "HTTP/1.1 200 OK"
+Loading weights:   0%|          | 0/202 [00:00<?, ?it/s]Loading weights:  87%|########7 | 176/202 [00:00<00:00, 1751.62it/s]Loading weights: 100%|##########| 202/202 [00:00<00:00, 1836.75it/s]
+2026-09-09 13:01:07 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
+2026-09-09 13:01:07 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-09 13:01:07 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-09 13:01:07 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
+2026-09-09 13:01:08 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 13:01:08 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/nli-deberta-v3-base/6c749ce3425cd33b46d187e45b92bbf96ee12ec7/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-09-09 13:01:08 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 13:01:08 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/nli-deberta-v3-base/6c749ce3425cd33b46d187e45b92bbf96ee12ec7/config.json "HTTP/1.1 200 OK"
+2026-09-09 13:01:08 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 13:01:08 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/nli-deberta-v3-base/6c749ce3425cd33b46d187e45b92bbf96ee12ec7/config.json "HTTP/1.1 200 OK"
+2026-09-09 13:01:08 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/cross-encoder/nli-deberta-v3-base/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
+2026-09-09 13:01:09 [INFO] httpx: HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/cross-encoder/nli-deberta-v3-base/6c749ce3425cd33b46d187e45b92bbf96ee12ec7/tokenizer_config.json "HTTP/1.1 200 OK"
+2026-09-09 13:01:09 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/cross-encoder/nli-deberta-v3-base/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
+2026-09-09 13:01:09 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/cross-encoder/nli-deberta-v3-base/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
+2026-09-09 13:01:11 [INFO] httpx: HTTP Request: GET https://huggingface.co/api/models/cross-encoder/nli-deberta-v3-base "HTTP/1.1 200 OK"
+2026-09-09 13:01:11 [INFO] src.nlp.similarity: Cross-encoder model loaded successfully
+2026-09-09 13:01:12 [INFO] src.nlp.similarity: Cross-encoder cost control: reranking top 20000 of 362427 candidates (cross_encoder_rerank_k=20000)
+2026-09-09 13:01:12 [INFO] src.nlp.similarity: Cross-encoder reranking 20000 pairs with model cross-encoder/nli-deberta-v3-base
+Batches:   0%|          | 0/313 [00:00<?, ?it/s]Batches:   0%|          | 1/313 [00:16<1:25:40, 16.48s/it]Batches:   1%|          | 2/313 [00:28<1:12:21, 13.96s/it]Batches:   1%|          | 3/313 [00:40<1:06:35, 12.89s/it]Batches:   1%|1         | 4/313 [00:51<1:03:58, 12.42s/it]Batches:   2%|1         | 5/313 [01:04<1:03:24, 12.35s/it]Batches:   2%|1         | 6/313 [01:15<1:01:53, 12.10s/it]Batches:   2%|2         | 7/313 [01:28<1:02:19, 12.22s/it]Batches:   3%|2         | 8/313 [01:41<1:03:03, 12.40s/it]Batches:   3%|2         | 9/313 [01:53<1:02:40, 12.37s/it]Batches:   3%|3         | 10/313 [02:05<1:02:40, 12.41s/it]Batches:   4%|3         | 11/313 [02:16<1:00:12, 11.96s/it]Batches:   4%|3         | 12/313 [02:25<54:35, 10.88s/it]  Batches:   4%|4         | 13/313 [02:32<49:22,  9.88s/it]Batches:   4%|4         | 14/313 [02:41<46:56,  9.42s/it]Batches:   5%|4         | 15/313 [02:49<45:14,  9.11s/it]Batches:   5%|5         | 16/313 [02:57<43:57,  8.88s/it]Batches:   5%|5         | 17/313 [03:05<41:53,  8.49s/it]Batches:   6%|5         | 18/313 [03:13<40:22,  8.21s/it]Batches:   6%|6         | 19/313 [03:21<40:24,  8.25s/it]Batches:   6%|6         | 20/313 [03:30<41:11,  8.43s/it]Batches:   7%|6         | 21/313 [03:39<41:31,  8.53s/it]Batches:   7%|7         | 22/313 [03:46<39:49,  8.21s/it]Batches:   7%|7         | 23/313 [03:53<38:36,  7.99s/it]Batches:   8%|7         | 24/313 [04:02<39:22,  8.18s/it]Batches:   8%|7         | 25/313 [04:10<38:32,  8.03s/it]Batches:   8%|8         | 26/313 [04:18<38:09,  7.98s/it]Batches:   9%|8         | 27/313 [04:26<38:55,  8.17s/it]Batches:   9%|8         | 28/313 [04:34<38:29,  8.10s/it]Batches:   9%|9         | 29/313 [04:42<38:13,  8.07s/it]Batches:  10%|9         | 30/313 [04:50<37:59,  8.05s/it]Batches:  10%|9         | 31/313 [04:58<37:12,  7.91s/it]Batches:  10%|#         | 32/313 [05:06<37:16,  7.96s/it]Batches:  11%|#         | 33/313 [05:14<37:21,  8.00s/it]Batches:  11%|#         | 34/313 [05:22<37:20,  8.03s/it]Batches:  11%|#1        | 35/313 [05:30<37:14,  8.04s/it]Batches:  12%|#1        | 36/313 [05:38<36:30,  7.91s/it]Batches:  12%|#1        | 37/313 [05:46<36:38,  7.97s/it]Batches:  12%|#2        | 38/313 [05:54<37:24,  8.16s/it]Batches:  12%|#2        | 39/313 [06:02<36:31,  8.00s/it]Batches:  13%|#2        | 40/313 [06:10<35:45,  7.86s/it]Batches:  13%|#3        | 41/313 [06:17<35:08,  7.75s/it]Batches:  13%|#3        | 42/313 [06:25<34:48,  7.71s/it]Batches:  14%|#3        | 43/313 [06:32<34:12,  7.60s/it]Batches:  14%|#4        | 44/313 [06:41<35:30,  7.92s/it]Batches:  14%|#4        | 45/313 [06:49<36:15,  8.12s/it]Batches:  15%|#4        | 46/313 [06:58<36:54,  8.29s/it]Batches:  15%|#5        | 47/313 [07:06<36:49,  8.31s/it]Batches:  15%|#5        | 48/313 [07:14<35:48,  8.11s/it]Batches:  16%|#5        | 49/313 [07:22<34:58,  7.95s/it]Batches:  16%|#5        | 50/313 [07:29<34:17,  7.82s/it]Batches:  16%|#6        | 51/313 [07:37<33:46,  7.73s/it]Batches:  17%|#6        | 52/313 [07:44<33:23,  7.68s/it]Batches:  17%|#6        | 53/313 [07:52<33:24,  7.71s/it]Batches:  17%|#7        | 54/313 [08:00<33:20,  7.73s/it]Batches:  18%|#7        | 55/313 [08:07<33:10,  7.72s/it]Batches:  18%|#7        | 56/313 [08:15<32:55,  7.69s/it]Batches:  18%|#8        | 57/313 [08:23<32:47,  7.69s/it]Batches:  19%|#8        | 58/313 [08:30<32:33,  7.66s/it]Batches:  19%|#8        | 59/313 [08:38<32:22,  7.65s/it]Batches:  19%|#9        | 60/313 [08:46<32:19,  7.66s/it]Batches:  19%|#9        | 61/313 [08:53<31:58,  7.61s/it]Batches:  20%|#9        | 62/313 [09:01<31:35,  7.55s/it]Batches:  20%|##        | 63/313 [09:08<31:33,  7.57s/it]Batches:  20%|##        | 64/313 [09:16<31:23,  7.56s/it]Batches:  21%|##        | 65/313 [09:24<32:17,  7.81s/it]Batches:  21%|##1       | 66/313 [09:32<32:49,  7.97s/it]Batches:  21%|##1       | 67/313 [09:40<32:03,  7.82s/it]Batches:  22%|##1       | 68/313 [09:48<32:40,  8.00s/it]Batches:  22%|##2       | 69/313 [09:58<34:04,  8.38s/it]Batches:  22%|##2       | 70/313 [10:06<33:33,  8.29s/it]Batches:  23%|##2       | 71/313 [10:13<32:36,  8.08s/it]Batches:  23%|##3       | 72/313 [10:21<31:55,  7.95s/it]Batches:  23%|##3       | 73/313 [10:28<31:23,  7.85s/it]Batches:  24%|##3       | 74/313 [10:36<31:08,  7.82s/it]Batches:  24%|##3       | 75/313 [10:44<30:35,  7.71s/it]Batches:  24%|##4       | 76/313 [10:51<30:28,  7.72s/it]Batches:  25%|##4       | 77/313 [10:59<30:19,  7.71s/it]Batches:  25%|##4       | 78/313 [11:07<30:04,  7.68s/it]Batches:  25%|##5       | 79/313 [11:14<30:02,  7.70s/it]Batches:  26%|##5       | 80/313 [11:22<29:57,  7.72s/it]Batches:  26%|##5       | 81/313 [11:30<29:50,  7.72s/it]Batches:  26%|##6       | 82/313 [11:38<29:58,  7.79s/it]Batches:  27%|##6       | 83/313 [11:46<29:41,  7.75s/it]Batches:  27%|##6       | 84/313 [11:54<30:07,  7.89s/it]Batches:  27%|##7       | 85/313 [12:01<29:09,  7.67s/it]Batches:  27%|##7       | 86/313 [12:08<28:37,  7.56s/it]Batches:  28%|##7       | 87/313 [12:16<29:05,  7.72s/it]Batches:  28%|##8       | 88/313 [12:24<29:24,  7.84s/it]Batches:  28%|##8       | 89/313 [12:32<29:03,  7.78s/it]Batches:  29%|##8       | 90/313 [12:40<29:22,  7.91s/it]Batches:  29%|##9       | 91/313 [12:48<28:54,  7.81s/it]Batches:  29%|##9       | 92/313 [12:55<28:28,  7.73s/it]Batches:  30%|##9       | 93/313 [13:03<27:56,  7.62s/it]Batches:  30%|###       | 94/313 [13:09<26:28,  7.25s/it]Batches:  30%|###       | 95/313 [13:15<24:41,  6.80s/it]Batches:  31%|###       | 96/313 [13:22<25:22,  7.01s/it]Batches:  31%|###       | 97/313 [13:30<25:46,  7.16s/it]Batches:  31%|###1      | 98/313 [13:38<26:56,  7.52s/it]Batches:  32%|###1      | 99/313 [13:47<27:33,  7.73s/it]Batches:  32%|###1      | 100/313 [13:55<27:50,  7.84s/it]Batches:  32%|###2      | 101/313 [14:02<27:26,  7.77s/it]Batches:  33%|###2      | 102/313 [14:10<27:14,  7.75s/it]Batches:  33%|###2      | 103/313 [14:18<27:45,  7.93s/it]Batches:  33%|###3      | 104/313 [14:26<27:36,  7.92s/it]Batches:  34%|###3      | 105/313 [14:34<27:32,  7.94s/it]Batches:  34%|###3      | 106/313 [14:42<27:18,  7.91s/it]Batches:  34%|###4      | 107/313 [14:49<26:41,  7.77s/it]Batches:  35%|###4      | 108/313 [14:57<26:07,  7.65s/it]Batches:  35%|###4      | 109/313 [15:06<27:37,  8.12s/it]Batches:  35%|###5      | 110/313 [15:13<26:43,  7.90s/it]Batches:  35%|###5      | 111/313 [15:21<26:17,  7.81s/it]Batches:  36%|###5      | 112/313 [15:28<25:47,  7.70s/it]Batches:  36%|###6      | 113/313 [15:36<25:43,  7.72s/it]Batches:  36%|###6      | 114/313 [15:44<25:38,  7.73s/it]Batches:  37%|###6      | 115/313 [15:52<25:36,  7.76s/it]Batches:  37%|###7      | 116/313 [16:00<25:28,  7.76s/it]Batches:  37%|###7      | 117/313 [16:07<25:08,  7.70s/it]Batches:  38%|###7      | 118/313 [16:15<25:26,  7.83s/it]Batches:  38%|###8      | 119/313 [16:23<25:34,  7.91s/it]Batches:  38%|###8      | 120/313 [16:32<26:07,  8.12s/it]Batches:  39%|###8      | 121/313 [16:40<25:31,  7.98s/it]Batches:  39%|###8      | 122/313 [16:47<25:14,  7.93s/it]Batches:  39%|###9      | 123/313 [16:55<24:34,  7.76s/it]Batches:  40%|###9      | 124/313 [17:03<24:28,  7.77s/it]Batches:  40%|###9      | 125/313 [17:10<24:20,  7.77s/it]Batches:  40%|####      | 126/313 [17:19<24:39,  7.91s/it]Batches:  41%|####      | 127/313 [17:28<25:26,  8.21s/it]Batches:  41%|####      | 128/313 [17:37<26:14,  8.51s/it]Batches:  41%|####1     | 129/313 [17:44<25:19,  8.26s/it]Batches:  42%|####1     | 130/313 [17:52<24:38,  8.08s/it]Batches:  42%|####1     | 131/313 [18:00<24:49,  8.18s/it]Batches:  42%|####2     | 132/313 [18:09<24:54,  8.26s/it]Batches:  42%|####2     | 133/313 [18:17<24:57,  8.32s/it]Batches:  43%|####2     | 134/313 [18:26<24:49,  8.32s/it]Batches:  43%|####3     | 135/313 [18:33<24:00,  8.09s/it]Batches:  43%|####3     | 136/313 [18:41<23:26,  7.95s/it]Batches:  44%|####3     | 137/313 [18:49<23:10,  7.90s/it]Batches:  44%|####4     | 138/313 [18:56<22:51,  7.84s/it]Batches:  44%|####4     | 139/313 [19:04<22:43,  7.84s/it]Batches:  45%|####4     | 140/313 [19:12<22:32,  7.82s/it]Batches:  45%|####5     | 141/313 [19:20<22:15,  7.76s/it]Batches:  45%|####5     | 142/313 [19:27<22:09,  7.78s/it]Batches:  46%|####5     | 143/313 [19:35<22:07,  7.81s/it]Batches:  46%|####6     | 144/313 [19:43<21:50,  7.76s/it]Batches:  46%|####6     | 145/313 [19:51<21:37,  7.73s/it]Batches:  47%|####6     | 146/313 [19:58<21:11,  7.61s/it]Batches:  47%|####6     | 147/313 [20:05<20:44,  7.50s/it]Batches:  47%|####7     | 148/313 [20:13<20:45,  7.55s/it]Batches:  48%|####7     | 149/313 [20:20<20:43,  7.59s/it]Batches:  48%|####7     | 150/313 [20:28<20:40,  7.61s/it]Batches:  48%|####8     | 151/313 [20:36<20:20,  7.54s/it]Batches:  49%|####8     | 152/313 [20:43<20:05,  7.49s/it]Batches:  49%|####8     | 153/313 [20:50<19:50,  7.44s/it]Batches:  49%|####9     | 154/313 [20:58<19:51,  7.49s/it]Batches:  50%|####9     | 155/313 [21:05<19:35,  7.44s/it]Batches:  50%|####9     | 156/313 [21:12<19:21,  7.40s/it]Batches:  50%|#####     | 157/313 [21:19<18:52,  7.26s/it]Batches:  50%|#####     | 158/313 [21:26<18:29,  7.16s/it]Batches:  51%|#####     | 159/313 [21:35<19:37,  7.65s/it]Batches:  51%|#####1    | 160/313 [21:43<19:41,  7.73s/it]Batches:  51%|#####1    | 161/313 [21:50<19:19,  7.63s/it]Batches:  52%|#####1    | 162/313 [21:57<18:39,  7.42s/it]Batches:  52%|#####2    | 163/313 [22:06<19:14,  7.70s/it]Batches:  52%|#####2    | 164/313 [22:13<18:29,  7.44s/it]Batches:  53%|#####2    | 165/313 [22:19<17:55,  7.27s/it]Batches:  53%|#####3    | 166/313 [22:27<17:51,  7.29s/it]Batches:  53%|#####3    | 167/313 [22:36<18:53,  7.76s/it]Batches:  54%|#####3    | 168/313 [22:42<18:06,  7.49s/it]Batches:  54%|#####3    | 169/313 [22:50<18:11,  7.58s/it]Batches:  54%|#####4    | 170/313 [22:59<18:41,  7.84s/it]Batches:  55%|#####4    | 171/313 [23:07<18:57,  8.01s/it]Batches:  55%|#####4    | 172/313 [23:14<18:21,  7.81s/it]Batches:  55%|#####5    | 173/313 [23:21<17:35,  7.54s/it]Batches:  56%|#####5    | 174/313 [23:29<17:20,  7.49s/it]Batches:  56%|#####5    | 175/313 [23:36<17:06,  7.44s/it]Batches:  56%|#####6    | 176/313 [23:43<16:55,  7.42s/it]Batches:  57%|#####6    | 177/313 [23:51<16:46,  7.40s/it]Batches:  57%|#####6    | 178/313 [23:58<16:39,  7.40s/it]Batches:  57%|#####7    | 179/313 [24:06<16:32,  7.40s/it]Batches:  58%|#####7    | 180/313 [24:13<16:16,  7.34s/it]Batches:  58%|#####7    | 181/313 [24:20<15:50,  7.20s/it]Batches:  58%|#####8    | 182/313 [24:27<15:47,  7.24s/it]Batches:  58%|#####8    | 183/313 [24:34<15:46,  7.28s/it]Batches:  59%|#####8    | 184/313 [24:43<16:24,  7.63s/it]Batches:  59%|#####9    | 185/313 [24:50<16:11,  7.59s/it]Batches:  59%|#####9    | 186/313 [24:58<15:53,  7.51s/it]Batches:  60%|#####9    | 187/313 [25:05<15:45,  7.51s/it]Batches:  60%|######    | 188/313 [25:13<15:50,  7.61s/it]Batches:  60%|######    | 189/313 [25:20<15:28,  7.49s/it]Batches:  61%|######    | 190/313 [25:28<15:15,  7.44s/it]Batches:  61%|######1   | 191/313 [25:35<15:10,  7.46s/it]Batches:  61%|######1   | 192/313 [25:42<14:59,  7.44s/it]Batches:  62%|######1   | 193/313 [25:50<14:49,  7.41s/it]Batches:  62%|######1   | 194/313 [25:57<14:36,  7.37s/it]Batches:  62%|######2   | 195/313 [26:04<14:28,  7.36s/it]Batches:  63%|######2   | 196/313 [26:13<14:54,  7.64s/it]Batches:  63%|######2   | 197/313 [26:21<15:15,  7.89s/it]Batches:  63%|######3   | 198/313 [26:30<15:24,  8.04s/it]Batches:  64%|######3   | 199/313 [26:37<15:09,  7.97s/it]Batches:  64%|######3   | 200/313 [26:46<15:14,  8.10s/it]Batches:  64%|######4   | 201/313 [26:54<15:03,  8.07s/it]Batches:  65%|######4   | 202/313 [27:00<14:06,  7.62s/it]Batches:  65%|######4   | 203/313 [27:07<13:23,  7.31s/it]Batches:  65%|######5   | 204/313 [27:13<12:50,  7.07s/it]Batches:  65%|######5   | 205/313 [27:21<13:09,  7.31s/it]Batches:  66%|######5   | 206/313 [27:29<13:21,  7.49s/it]Batches:  66%|######6   | 207/313 [27:37<13:28,  7.63s/it]Batches:  66%|######6   | 208/313 [27:45<13:32,  7.74s/it]Batches:  67%|######6   | 209/313 [27:53<13:32,  7.81s/it]Batches:  67%|######7   | 210/313 [28:00<12:50,  7.48s/it]Batches:  67%|######7   | 211/313 [28:08<13:07,  7.72s/it]Batches:  68%|######7   | 212/313 [28:16<13:08,  7.81s/it]Batches:  68%|######8   | 213/313 [28:24<13:04,  7.85s/it]Batches:  68%|######8   | 214/313 [28:32<13:01,  7.90s/it]Batches:  69%|######8   | 215/313 [28:40<12:57,  7.94s/it]Batches:  69%|######9   | 216/313 [28:48<12:52,  7.96s/it]Batches:  69%|######9   | 217/313 [28:56<12:43,  7.95s/it]Batches:  70%|######9   | 218/313 [29:04<12:34,  7.94s/it]Batches:  70%|######9   | 219/313 [29:12<12:26,  7.94s/it]Batches:  70%|#######   | 220/313 [29:20<12:19,  7.95s/it]Batches:  71%|#######   | 221/313 [29:26<11:34,  7.55s/it]Batches:  71%|#######   | 222/313 [29:34<11:39,  7.69s/it]Batches:  71%|#######1  | 223/313 [29:42<11:18,  7.54s/it]Batches:  72%|#######1  | 224/313 [29:49<11:01,  7.43s/it]Batches:  72%|#######1  | 225/313 [29:56<10:48,  7.37s/it]Batches:  72%|#######2  | 226/313 [30:03<10:36,  7.31s/it]Batches:  73%|#######2  | 227/313 [30:10<10:25,  7.28s/it]Batches:  73%|#######2  | 228/313 [30:18<10:15,  7.24s/it]Batches:  73%|#######3  | 229/313 [30:25<10:07,  7.23s/it]Batches:  73%|#######3  | 230/313 [30:32<09:57,  7.20s/it]Batches:  74%|#######3  | 231/313 [30:39<09:49,  7.19s/it]Batches:  74%|#######4  | 232/313 [30:46<09:41,  7.19s/it]Batches:  74%|#######4  | 233/313 [30:54<09:35,  7.20s/it]Batches:  75%|#######4  | 234/313 [31:01<09:30,  7.22s/it]Batches:  75%|#######5  | 235/313 [31:08<09:21,  7.20s/it]Batches:  75%|#######5  | 236/313 [31:15<09:14,  7.20s/it]Batches:  76%|#######5  | 237/313 [31:22<09:07,  7.21s/it]Batches:  76%|#######6  | 238/313 [31:30<09:00,  7.21s/it]Batches:  76%|#######6  | 239/313 [31:37<08:52,  7.20s/it]Batches:  77%|#######6  | 240/313 [31:44<08:45,  7.19s/it]Batches:  77%|#######6  | 241/313 [31:50<08:21,  6.96s/it]Batches:  77%|#######7  | 242/313 [31:57<08:15,  6.98s/it]Batches:  78%|#######7  | 243/313 [32:05<08:11,  7.02s/it]Batches:  78%|#######7  | 244/313 [32:11<07:54,  6.87s/it]Batches:  78%|#######8  | 245/313 [32:17<07:37,  6.72s/it]Batches:  79%|#######8  | 246/313 [32:24<07:23,  6.63s/it]Batches:  79%|#######8  | 247/313 [32:30<07:13,  6.57s/it]Batches:  79%|#######9  | 248/313 [32:37<07:04,  6.53s/it]Batches:  80%|#######9  | 249/313 [32:43<06:55,  6.50s/it]Batches:  80%|#######9  | 250/313 [32:50<06:48,  6.49s/it]Batches:  80%|########  | 251/313 [32:55<06:18,  6.11s/it]Batches:  81%|########  | 252/313 [33:00<05:54,  5.82s/it]Batches:  81%|########  | 253/313 [33:05<05:37,  5.62s/it]Batches:  81%|########1 | 254/313 [33:10<05:23,  5.49s/it]Batches:  81%|########1 | 255/313 [33:15<05:12,  5.39s/it]Batches:  82%|########1 | 256/313 [33:21<05:03,  5.33s/it]Batches:  82%|########2 | 257/313 [33:26<04:56,  5.29s/it]Batches:  82%|########2 | 258/313 [33:31<04:49,  5.26s/it]Batches:  83%|########2 | 259/313 [33:36<04:42,  5.23s/it]Batches:  83%|########3 | 260/313 [33:41<04:36,  5.21s/it]Batches:  83%|########3 | 261/313 [33:46<04:30,  5.19s/it]Batches:  84%|########3 | 262/313 [33:52<04:24,  5.19s/it]Batches:  84%|########4 | 263/313 [33:57<04:19,  5.19s/it]Batches:  84%|########4 | 264/313 [34:02<04:13,  5.18s/it]Batches:  85%|########4 | 265/313 [34:07<04:08,  5.17s/it]Batches:  85%|########4 | 266/313 [34:12<04:02,  5.17s/it]Batches:  85%|########5 | 267/313 [34:18<03:57,  5.17s/it]Batches:  86%|########5 | 268/313 [34:23<03:52,  5.16s/it]Batches:  86%|########5 | 269/313 [34:28<03:47,  5.16s/it]Batches:  86%|########6 | 270/313 [34:33<03:42,  5.17s/it]Batches:  87%|########6 | 271/313 [34:38<03:36,  5.16s/it]Batches:  87%|########6 | 272/313 [34:43<03:31,  5.16s/it]Batches:  87%|########7 | 273/313 [34:48<03:26,  5.16s/it]Batches:  88%|########7 | 274/313 [34:54<03:21,  5.17s/it]Batches:  88%|########7 | 275/313 [34:59<03:16,  5.18s/it]Batches:  88%|########8 | 276/313 [35:04<03:11,  5.18s/it]Batches:  88%|########8 | 277/313 [35:09<03:06,  5.18s/it]Batches:  89%|########8 | 278/313 [35:14<03:00,  5.17s/it]Batches:  89%|########9 | 279/313 [35:20<02:55,  5.17s/it]Batches:  89%|########9 | 280/313 [35:25<02:50,  5.18s/it]Batches:  90%|########9 | 281/313 [35:30<02:45,  5.18s/it]Batches:  90%|######### | 282/313 [35:35<02:40,  5.17s/it]Batches:  90%|######### | 283/313 [35:40<02:35,  5.18s/it]Batches:  91%|######### | 284/313 [35:45<02:29,  5.17s/it]Batches:  91%|#########1| 285/313 [35:51<02:24,  5.16s/it]Batches:  91%|#########1| 286/313 [35:56<02:19,  5.17s/it]Batches:  92%|#########1| 287/313 [36:01<02:14,  5.19s/it]Batches:  92%|#########2| 288/313 [36:06<02:09,  5.18s/it]Batches:  92%|#########2| 289/313 [36:11<02:04,  5.17s/it]Batches:  93%|#########2| 290/313 [36:16<01:58,  5.17s/it]Batches:  93%|#########2| 291/313 [36:22<01:54,  5.19s/it]Batches:  93%|#########3| 292/313 [36:27<01:49,  5.21s/it]Batches:  94%|#########3| 293/313 [36:32<01:44,  5.21s/it]Batches:  94%|#########3| 294/313 [36:38<01:44,  5.49s/it]Batches:  94%|#########4| 295/313 [36:44<01:42,  5.68s/it]Batches:  95%|#########4| 296/313 [36:50<01:33,  5.52s/it]Batches:  95%|#########4| 297/313 [36:55<01:26,  5.42s/it]Batches:  95%|#########5| 298/313 [37:01<01:25,  5.72s/it]Batches:  96%|#########5| 299/313 [37:06<01:14,  5.32s/it]Batches:  96%|#########5| 300/313 [37:10<01:03,  4.91s/it]Batches:  96%|#########6| 301/313 [37:13<00:53,  4.46s/it]Batches:  96%|#########6| 302/313 [37:16<00:45,  4.18s/it]Batches:  97%|#########6| 303/313 [37:19<00:36,  3.69s/it]Batches:  97%|#########7| 304/313 [37:21<00:29,  3.33s/it]Batches:  97%|#########7| 305/313 [37:24<00:24,  3.09s/it]Batches:  98%|#########7| 306/313 [37:27<00:20,  2.92s/it]Batches:  98%|#########8| 307/313 [37:29<00:16,  2.80s/it]Batches:  98%|#########8| 308/313 [37:32<00:13,  2.72s/it]Batches:  99%|#########8| 309/313 [37:34<00:10,  2.65s/it]Batches:  99%|#########9| 310/313 [37:36<00:06,  2.30s/it]Batches:  99%|#########9| 311/313 [37:37<00:04,  2.06s/it]Batches: 100%|#########9| 312/313 [37:39<00:01,  1.89s/it]Batches: 100%|##########| 313/313 [37:39<00:00,  1.56s/it]Batches: 100%|##########| 313/313 [37:39<00:00,  7.22s/it]
+2026-09-09 13:38:52 [INFO] src.nlp.similarity: Cross-encoder reranked 20000 pairs in 2260.16s (8.8 pairs/sec)
+2026-09-09 13:38:52 [WARNING] src.utils.degradations: DEGRADED [cross_encoder]: 342427 candidate pairs not reranked by the cross-encoder (rerank cap or disabled); their semantic scores fall back to the lower-confidence bi-encoder score
+2026-09-09 13:38:52 [WARNING] src.utils.degradations: DEGRADED [cross_encoder]: 342427 post pairs beyond the rerank cap left with bi-encoder-only scores (lower confidence)
+2026-09-09 13:41:02 [INFO] src.pipeline: 
+[Stage 5] Computing edge features...
+2026-09-09 13:41:46 [WARNING] src.utils.degradations: DEGRADED [cross_encoder]: 211848 account pairs scored by bi-encoder only (cross-encoder disabled or missed these candidates); semantic scores are lower-confidence
+2026-09-09 13:41:46 [INFO] src.features.semantic: Merged semantic scores for 228681 pairs (16833 with cross-encoder scores, use_cross_encoder=True)
+2026-09-09 13:48:27 [INFO] src.pipeline: 
+[Stage 6] Building coordination graph...
+2026-09-09 13:48:31 [INFO] src.features.network: Computed account features for 3733 accounts
+2026-09-09 13:48:32 [INFO] src.graph.builder: Edges above threshold 0.3: 177321 / 264062
+2026-09-09 13:48:58 [INFO] src.graph.builder: Added 177321 coordination edges
+2026-09-09 13:48:58 [INFO] src.graph.builder: Built NetworkX graph: 3733 nodes, 31207 edges
+2026-09-09 13:48:59 [INFO] src.pipeline: 
+[Stage 7] Detecting communities...
+2026-09-09 13:49:01 [INFO] src.graph.community: Detected 632 Louvain communities
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [WARNING] src.utils.degradations: DEGRADED [gnn_integration]: community scoring ran without GNN scores; the GNN term contributed 0 to suspiciousness
+2026-09-09 13:49:01 [INFO] src.graph.community: Scored 22 communities
+2026-09-09 13:49:01 [INFO] src.pipeline: Canonical split: {'strategy': 'canonical_account_level_70_15_15', 'random_state': 42, 'train': 2613, 'val': 560, 'test': 560}
+2026-09-09 13:49:01 [INFO] src.pipeline: 
+[Stage 8] Training baseline models...
+2026-09-09 13:49:01 [INFO] src.models.baseline: Optimal threshold: 0.150 (best f1: 0.5111)
+2026-09-09 13:49:02 [INFO] src.models.baseline: Random Forest trained successfully
+2026-09-09 13:49:02 [INFO] src.models.baseline: Logistic Regression trained successfully
+2026-09-09 13:49:15 [INFO] src.pipeline: 
+random_forest feature importance:
+               feature  importance
+4    avg_hashtag_count    0.256500
+1   avg_follower_count    0.208386
+3         repost_ratio    0.203605
+2  avg_following_count    0.154031
+0           post_count    0.065967
+6    avg_mention_count    0.049624
+5        avg_url_count    0.034576
+7        posts_per_day    0.027311
+2026-09-09 13:49:15 [INFO] src.pipeline: 
+logistic_regression feature importance:
+               feature  importance
+4    avg_hashtag_count    7.673458
+2  avg_following_count    5.547201
+3         repost_ratio    4.020538
+0           post_count    1.523231
+5        avg_url_count    1.470074
+7        posts_per_day    1.183864
+1   avg_follower_count    0.906624
+6    avg_mention_count    0.526072
+2026-09-09 13:49:15 [INFO] src.pipeline: 
+[Stage 9] Training GNN models...
+2026-09-09 13:49:16 [INFO] src.pipeline: Node features augmented with 16-dim PCA content embedding (item 11)
+2026-09-09 13:49:24 [INFO] src.graph.builder: Built PyG Data: 3733 nodes, 62414 edges, node_features=torch.Size([3733, 23]), edge_features=torch.Size([62414, 7])
+2026-09-09 13:49:24 [INFO] src.pipeline: Training GCN...
+2026-09-09 13:49:24 [INFO] src.models.gcn: Built GCN: 23 -> 64 -> 2, 2 layers
+2026-09-09 13:49:25 [INFO] src.models.gcn: Epoch 10/100: train_loss=0.4250, val_loss=0.5032, val_f1=0.9212
+2026-09-09 13:49:25 [INFO] src.models.gcn: Epoch 20/100: train_loss=0.3341, val_loss=0.3650, val_f1=0.9405
+2026-09-09 13:49:26 [INFO] src.models.gcn: Epoch 30/100: train_loss=0.2665, val_loss=0.2723, val_f1=0.9494
+2026-09-09 13:49:27 [INFO] src.models.gcn: Epoch 40/100: train_loss=0.2309, val_loss=0.2202, val_f1=0.9531
+2026-09-09 13:49:27 [INFO] src.models.gcn: Epoch 50/100: train_loss=0.2156, val_loss=0.1905, val_f1=0.9586
+2026-09-09 13:49:28 [INFO] src.models.gcn: Epoch 60/100: train_loss=0.1904, val_loss=0.1713, val_f1=0.9641
+2026-09-09 13:49:29 [INFO] src.models.gcn: Epoch 70/100: train_loss=0.1798, val_loss=0.1570, val_f1=0.9678
+2026-09-09 13:49:29 [INFO] src.models.gcn: Epoch 80/100: train_loss=0.1689, val_loss=0.1455, val_f1=0.9644
+2026-09-09 13:49:30 [INFO] src.models.gcn: Epoch 90/100: train_loss=0.1557, val_loss=0.1357, val_f1=0.9698
+2026-09-09 13:49:31 [INFO] src.models.gcn: Epoch 100/100: train_loss=0.1486, val_loss=0.1274, val_f1=0.9680
+2026-09-09 13:49:31 [INFO] src.models.gcn: Training complete. Best epoch: 99, Best val_loss: 0.1274
+2026-09-09 13:49:31 [INFO] src.pipeline: Training GraphSAGE...
+2026-09-09 13:49:31 [INFO] src.models.graphsage: Built GraphSAGE: 23 -> 64 -> 2, 2 layers, aggregator=mean
+2026-09-09 13:49:31 [INFO] src.models.graphsage: Epoch 10/100: train_loss=0.3945, val_loss=0.4507, val_f1=0.9401
+2026-09-09 13:49:32 [INFO] src.models.graphsage: Epoch 20/100: train_loss=0.2990, val_loss=0.3061, val_f1=0.9497
+2026-09-09 13:49:32 [INFO] src.models.graphsage: Epoch 30/100: train_loss=0.2339, val_loss=0.2242, val_f1=0.9570
+2026-09-09 13:49:33 [INFO] src.models.graphsage: Epoch 40/100: train_loss=0.1953, val_loss=0.1765, val_f1=0.9661
+2026-09-09 13:49:34 [INFO] src.models.graphsage: Epoch 50/100: train_loss=0.1642, val_loss=0.1447, val_f1=0.9751
+2026-09-09 13:49:34 [INFO] src.models.graphsage: Epoch 60/100: train_loss=0.1393, val_loss=0.1206, val_f1=0.9751
+2026-09-09 13:49:35 [INFO] src.models.graphsage: Epoch 70/100: train_loss=0.1166, val_loss=0.1016, val_f1=0.9786
+2026-09-09 13:49:35 [INFO] src.models.graphsage: Epoch 80/100: train_loss=0.1043, val_loss=0.0866, val_f1=0.9822
+2026-09-09 13:49:36 [INFO] src.models.graphsage: Epoch 90/100: train_loss=0.0864, val_loss=0.0747, val_f1=0.9840
+2026-09-09 13:49:36 [INFO] src.models.graphsage: Epoch 100/100: train_loss=0.0771, val_loss=0.0652, val_f1=0.9858
+2026-09-09 13:49:36 [INFO] src.models.graphsage: GraphSAGE training complete. Best epoch: 99
+2026-09-09 13:49:36 [INFO] src.pipeline: [Stage 9b] Re-scoring communities with GNN P(IO)...
+2026-09-09 13:49:37 [INFO] src.graph.community: Scored 22 communities
+2026-09-09 13:49:37 [INFO] src.pipeline: GNN integration changed flagging: True
+2026-09-09 13:49:37 [INFO] src.pipeline: 
+[Stage 10] Evaluation...
+2026-09-09 13:49:37 [INFO] src.evaluation.experiments: Model comparison saved to results\model_comparison.csv
+2026-09-09 13:49:37 [INFO] src.pipeline: 
+[Stage 11] Running feature ablation study...
+2026-09-09 13:49:40 [INFO] src.pipeline: Ablation results saved to results\ablation_results.csv
+2026-09-09 13:49:40 [INFO] src.pipeline: 
+Ablation Study Results:
+   ablation  accuracy       f1
+none (full)  0.981258 0.981258
+no semantic  0.963855 0.963969
+no temporal  0.983936 0.983951
+     no url  0.982597 0.982605
+ no hashtag  0.925033 0.925607
+ no mention  0.978581 0.978540
+  no repost  0.973226 0.973299
+2026-09-09 13:49:40 [INFO] src.graph.visualization: Saved figure: results/figures\ablation_study.png
+2026-09-09 13:49:40 [INFO] src.graph.visualization: Saved figure: results/figures\ablation_study.png
+2026-09-09 13:49:40 [INFO] src.pipeline: 
+[Stage 12] Generating explanations...
+2026-09-09 13:50:31 [INFO] src.pipeline: GNNExplainer completed over 20 sample nodes
+2026-09-09 13:50:36 [INFO] src.pipeline: Permutation importance: {'semantic': 0.3765, 'temporal': 0.0099, 'url': 0.0003, 'hashtag': 0.3103, 'mention': 0.0225, 'repost': 0.0542}
+2026-09-09 13:50:36 [INFO] src.pipeline: 
+[Stage 13] Creating visualizations...
+2026-09-09 13:50:36 [INFO] src.graph.visualization: Subsampled network to 200 nodes for visualization
+2026-09-09 13:50:37 [INFO] src.graph.visualization: Saved figure: results/figures\network_graph.png
+2026-09-09 13:50:37 [INFO] src.graph.visualization: Saved figure: results/figures\roc_curve.png
+2026-09-09 13:50:38 [INFO] src.graph.visualization: Saved figure: results/figures\pr_curve.png
+2026-09-09 13:50:38 [INFO] src.graph.visualization: Saved figure: results/figures\confusion_matrix.png
+2026-09-09 13:50:38 [INFO] src.graph.visualization: Saved figure: results/figures\dist_semantic_similarity.png
+2026-09-09 13:50:39 [INFO] src.graph.visualization: Saved figure: results/figures\communities.png
+2026-09-09 13:50:40 [INFO] src.graph.visualization: Saved figure: results/figures\coordination_distribution.png
+2026-09-09 13:50:40 [INFO] src.graph.visualization: Saved figure: results/figures\model_comparison.png
+2026-09-09 13:50:41 [INFO] src.graph.visualization: Saved figure: results/figures\group_explanation_0.png
+2026-09-09 13:50:42 [INFO] src.graph.visualization: Saved figure: results/figures\group_explanation_1.png
+2026-09-09 13:50:43 [INFO] src.graph.visualization: Saved figure: results/figures\group_explanation_2.png
+2026-09-09 13:50:43 [INFO] src.pipeline: 
+[Stage 14] Persisting artifacts...
+2026-09-09 13:50:43 [INFO] src.graph.builder: Saved graph to results\artifacts\coordination_graph.pkl: 3733 nodes, 31207 edges
+2026-09-09 13:50:50 [INFO] src.pipeline: Persisted artifacts: ['results\\models\\gcn.pt', 'results\\models\\graphsage.pt', 'results\\artifacts\\coordination_graph.pkl', 'results\\artifacts\\post_embeddings.npy', 'results\\artifacts\\posts_index.csv', 'results\\artifacts\\account_embeddings.csv']
+2026-09-09 13:50:50 [INFO] src.pipeline: Results saved to results\pipeline_results.json
+2026-09-09 13:50:50 [INFO] src.pipeline: 
+============================================================
+2026-09-09 13:50:50 [INFO] src.pipeline: RESULTS SUMMARY
+2026-09-09 13:50:50 [INFO] src.pipeline: ============================================================
+2026-09-09 13:50:50 [INFO] src.pipeline: 
+              model  accuracy  precision  recall     f1  roc_auc  pr_auc
+ threshold_baseline    0.3411     0.3405  0.9948 0.5073   0.1258  0.2077
+      random_forest    0.9964     0.9896  1.0000 0.9948   0.9980  0.9921
+logistic_regression    0.9821     0.9840  0.9634 0.9735   0.9930  0.9918
+            louvain    0.4089     0.3472  0.8325 0.4900      NaN     NaN
+                gcn    0.9625     0.9625  0.9625 0.9625   0.9890  0.9849
+          graphsage    0.9893     0.9893  0.9893 0.9893   0.9992  0.9986
+2026-09-09 13:50:50 [INFO] src.pipeline: 
+Suspicious Groups Found: 10
+2026-09-09 13:50:50 [INFO] src.pipeline: 
+Group 118: 4 accounts with avg coordination score 0.368. GNN P(IO) 0.99. Top signals: semantic=0.79, mention=1.00, temporal=0.17. 5 evidence edges found.
+2026-09-09 13:50:50 [INFO] src.pipeline: 
+Group 38: 67 accounts with avg coordination score 0.338. GNN P(IO) 1.00. Top signals: semantic=0.91, mention=0.34, temporal=0.00. 5 evidence edges found.
+2026-09-09 13:50:50 [INFO] src.pipeline: 
+Group 385: 5 accounts with avg coordination score 0.433. GNN P(IO) 0.14. Top signals: semantic=1.00, mention=0.87, repost=0.40. 5 evidence edges found.
+2026-09-09 13:50:50 [INFO] src.pipeline: 
+Group 5: 292 accounts with avg coordination score 0.413. GNN P(IO) 0.94. Top signals: semantic=0.99, repost=0.50, mention=0.33. 5 evidence edges found.
+2026-09-09 13:50:50 [INFO] src.pipeline: 
+Group 409: 3 accounts with avg coordination score 0.500. GNN P(IO) 0.00. Top signals: semantic=0.95, hashtag=1.00, repost=0.50. 3 evidence edges found.
+2026-09-09 13:50:50 [INFO] src.pipeline: 
+============================================================
+2026-09-09 13:50:50 [INFO] src.pipeline: Pipeline completed in 3961.1 seconds
+2026-09-09 13:50:50 [INFO] src.pipeline: ============================================================
+2026-09-09 13:50:51 [INFO] __main__: 
+============================================================
+2026-09-09 13:50:51 [INFO] __main__: PIPELINE COMPLETE
+2026-09-09 13:50:51 [INFO] __main__: ============================================================
+2026-09-09 13:50:51 [INFO] __main__: Results saved to: results/
+2026-09-09 13:50:51 [INFO] __main__: Run 'streamlit run app/streamlit_app.py' to view the dashboard

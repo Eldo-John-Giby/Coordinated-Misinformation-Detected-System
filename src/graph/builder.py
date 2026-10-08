@@ -9,6 +9,7 @@ Edges are created ONLY when coordination evidence exceeds a threshold.
 
 import logging
 import os
+import pickle
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -79,8 +80,25 @@ class GraphBuilder:
                    f"{len(edges_df)} / {len(edge_features_df)}")
 
         # Add edges with features
+        added_edges = 0
+        skipped_self_loops = 0
         for _, row in edges_df.iterrows():
             if row["account_a"] in G.nodes and row["account_b"] in G.nodes:
+                # Self-loop guard (item 1): an account must never coordinate
+                # with itself. Type-coercion bugs upstream (e.g. accountid
+                # column becoming float64) previously produced self-pairs like
+                # ("2214516257", 2214516257.0). Log loudly and skip.
+                if row["account_a"] == row["account_b"]:
+                    skipped_self_loops += 1
+                    logger.warning(
+                        "Self-loop edge skipped: account %r paired with itself "
+                        "(coordination_score=%.3f). This usually indicates an "
+                        "account-ID dtype/coercion bug upstream.",
+                        row["account_a"],
+                        row.get("coordination_score", 0),
+                    )
+                    continue
+
                 attrs = {
                     "coordination_score": row["coordination_score"],
                     "semantic_similarity": row.get("semantic_similarity", 0),
@@ -94,6 +112,14 @@ class GraphBuilder:
                     "shared_mention_count": row.get("shared_mention_count", 0),
                 }
                 G.add_edge(row["account_a"], row["account_b"], **attrs)
+                added_edges += 1
+
+        if skipped_self_loops > 0:
+            logger.warning(
+                "Skipped %d self-loop edge(s) during graph construction",
+                skipped_self_loops,
+            )
+        logger.info(f"Added {added_edges} coordination edges")
 
         # Limit edges per node (for scalability)
         if self.max_edges_per_node:
@@ -219,14 +245,22 @@ class GraphBuilder:
         return stats
 
     def save_graph(self, G: nx.Graph, path: str):
-        """Save NetworkX graph to disk."""
+        """Save NetworkX graph to disk.
+
+        Uses pickle directly. The previous implementation called
+        nx.write_gpickle / nx.read_gpickle, which were removed in
+        networkx>=3.0 and crashed with AttributeError (item 14).
+        """
         os.makedirs(os.path.dirname(path) if os.path.dirname(path) else ".", exist_ok=True)
-        nx.write_gpickle(G, path)
-        logger.info(f"Saved graph to {path}")
+        with open(path, "wb") as f:
+            pickle.dump(G, f, protocol=pickle.HIGHEST_PROTOCOL)
+        logger.info(f"Saved graph to {path}: {G.number_of_nodes()} nodes, "
+                    f"{G.number_of_edges()} edges")
 
     def load_graph(self, path: str) -> nx.Graph:
-        """Load NetworkX graph from disk."""
-        G = nx.read_gpickle(path)
+        """Load a NetworkX graph saved by save_graph."""
+        with open(path, "rb") as f:
+            G = pickle.load(f)
         logger.info(f"Loaded graph from {path}: {G.number_of_nodes()} nodes, "
-                   f"{G.number_of_edges()} edges")
+                    f"{G.number_of_edges()} edges")
         return G

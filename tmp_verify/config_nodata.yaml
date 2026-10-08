@@ -1,0 +1,145 @@
+coordination:
+  edge_threshold: 0.3
+  max_edges_per_node: 50
+  min_edge_score: 0.1
+  weights:
+    hashtag: 0.1
+    mention: 0.05
+    repost: 0.1
+    semantic: 0.35
+    temporal: 0.25
+    url: 0.15
+data:
+  allow_synthetic_fallback: false
+  campaign: Honduras
+  max_files_per_campaign: 10
+  max_posts: null
+  processed_dir: data/processed
+  random_seed: 42
+  raw_dir: tmp_verify/empty_raw
+  subsample_fraction: null
+evaluation:
+  classification_metrics:
+  - accuracy
+  - precision
+  - recall
+  - f1
+  - roc_auc
+  - pr_auc
+  community_metrics:
+  - adjusted_rand_index
+  - normalized_mutual_info
+  cv_folds: null
+experiments:
+  ablation: true
+  ablation_features:
+  - semantic
+  - temporal
+  - url
+  - hashtag
+  - mention
+  - repost
+  cross_campaign: false
+  output_dir: results
+explainability:
+  methods:
+  - feature_importance
+  - permutation_importance
+  permutation_runs: 10
+  use_gnnexplainer: true
+  use_shap: false
+graph:
+  edge_features:
+  - semantic_similarity
+  - temporal_score
+  - shared_url_score
+  - shared_hashtag_score
+  - shared_mention_score
+  - repost_score
+  node_features:
+  - post_count
+  - avg_follower_count
+  - avg_following_count
+  - repost_ratio
+  - avg_hashtag_count
+  - avg_url_count
+  - avg_mention_count
+  use_node_features: true
+models:
+  baseline:
+    logistic_regression:
+      max_iter: 1000
+      random_state: 42
+    random_forest:
+      max_depth: 20
+      n_estimators: 100
+      random_state: 42
+  gcn:
+    dropout: 0.5
+    epochs: 100
+    hidden_channels: 64
+    learning_rate: 0.001
+    num_layers: 2
+    patience: 10
+  graphsage:
+    aggregator: mean
+    dropout: 0.5
+    epochs: 100
+    hidden_channels: 64
+    learning_rate: 0.001
+    num_layers: 2
+    patience: 10
+nlp:
+  batch_size: 256
+  device: null
+  embedding_dim: 384
+  model_name: sentence-transformers/all-MiniLM-L6-v2
+paraphrase_experiment:
+  min_biencoder_score: 0.7
+  n_pairs: 200
+  paraphrase_model: claude-sonnet-4-6
+preprocessing:
+  drop_malformed: true
+  fill_missing_text: ''
+  lowercase: true
+  min_text_length: 3
+  remove_mentions_from_text: false
+  remove_urls_from_text: true
+  timestamp_format: null
+similarity:
+  cross_encoder_batch_size: 64
+  cross_encoder_model: cross-encoder/nli-deberta-v3-base
+  cross_encoder_rerank_k: null
+  faiss_index_type: flat
+  k_neighbors: 20
+  max_post_pairs_per_account_pair: 3
+  max_rerank_pairs: 20000
+  method: faiss
+  retrieval_floor: 0.3
+  semantic_threshold: 0.7
+  use_cross_encoder_rerank: true
+splitting:
+  strategy: account
+  temporal_cutoff: null
+  test_ratio: 0.15
+  train_ratio: 0.7
+  val_ratio: 0.15
+streamlit:
+  max_display_accounts: 100
+  max_display_groups: 50
+  port: 8501
+  theme: dark
+temporal:
+  burst_min_posts: 3
+  burst_window: 300
+  tau: 3600
+visualization:
+  color_scheme:
+    background: '#ffffff'
+    control_account: '#2ecc71'
+    io_account: '#e74c3c'
+    suspicious_group: '#e67e22'
+  dpi: 150
+  format: png
+  max_network_nodes: 200
+  output_dir: results/figures

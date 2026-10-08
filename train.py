@@ -191,9 +191,14 @@ def main():
     parser.add_argument("--sample", action="store_true",
                        help="Use/create sample data for testing")
     parser.add_argument("--convert", action="store_true",
-                       help="Download and convert Zenodo IO dataset to pipeline format")
+                        help="Download and convert Zenodo IO dataset to pipeline format")
     parser.add_argument("--convert-max-posts", type=int, default=None,
-                       help="Max posts to convert per file (for quick testing)")
+                        help="Max posts to convert per file (for quick testing)")
+    parser.add_argument("--allow-synthetic-fallback", action="store_true",
+                        help="Allow generating a SYNTHETIC dataset when no real "
+                             "data files are found. Without this flag, missing "
+                             "data is a fatal error (results are tagged "
+                             "data_source=synthetic when the flag is used).")
     parser.add_argument("--log-level", type=str, default="INFO",
                        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                        help="Logging level")
@@ -209,6 +214,11 @@ def main():
 
     # Load config
     config = load_config(args.config)
+
+    # Synthetic fallback is strictly opt-in (item 9)
+    config["data"]["allow_synthetic_fallback"] = bool(
+        getattr(args, "allow_synthetic_fallback", False)
+    )
 
     # Override campaign if specified
     if args.campaign:

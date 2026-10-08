@@ -126,8 +126,8 @@ class ParaphraseRobustnessExperiment:
         # (the ones that drove the account-level similarity)
         pairs = []
         for acc_a, acc_b, bi_score in candidates:
-            posts_a = df_io[df_io["accountid"] == acc_a]["clean_text"].tolist()
-            posts_b = df_io[df_io["accountid"] == acc_b]["clean_text"].tolist()
+            posts_a = df_io[df_io["accountid"] == acc_a]["post_text"].tolist()
+            posts_b = df_io[df_io["accountid"] == acc_b]["post_text"].tolist()
 
             # Pick first non-empty post from each account
             text_a = next((t for t in posts_a if isinstance(t, str) and t.strip()), "")

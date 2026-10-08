@@ -22,16 +22,27 @@ logger = logging.getLogger(__name__)
 class SimilaritySearch:
     """Find semantically similar post pairs using efficient NN search."""
 
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, degradations=None):
         self.config = config
         self.sim_config = config.get("similarity", {})
         self.method = self.sim_config.get("method", "faiss")
         self.k_neighbors = self.sim_config.get("k_neighbors", 20)
         self.threshold = self.sim_config.get("semantic_threshold", 0.7)
         self.index_type = self.sim_config.get("faiss_index_type", "flat")
+        # Item 5: retrieval is recall-oriented. This floor only removes
+        # obviously-unrelated pairs BEFORE the cross-encoder rerank; the
+        # cross-encoder score is the precision gate. Kept deliberately low
+        # (0.3): for L2-normalized MiniLM embeddings, unrelated text rarely
+        # exceeds ~0.3 cosine, while paraphrases stay far above it.
+        self.retrieval_threshold = self.sim_config.get("retrieval_floor", 0.3)
+
+        # Optional DegradationTracker (item 8a): FAISS -> sklearn fallback
+        # changes the retrieval algorithm and must be surfaced in results.
+        self._degradations = degradations
 
         self._index = None
         self._sklearn_model = None
+        self._fallback_recorded = False
 
     def build_index(self, embeddings: np.ndarray):
         """Build a nearest-neighbor index from embeddings."""
@@ -61,7 +72,18 @@ class SimilaritySearch:
             logger.info(f"Built FAISS index ({self.index_type}): "
                        f"{self._index.ntotal} vectors")
         except ImportError:
-            logger.warning("FAISS not available, falling back to sklearn")
+            reason = (
+                "faiss not installed; fell back to sklearn "
+                "NearestNeighbors (brute-force cosine search - slower, "
+                "exhaustive, different recall characteristics)"
+            )
+            logger.warning(reason)
+            if not self._fallback_recorded:
+                if self._degradations is not None:
+                    self._degradations.record("faiss", reason)
+                else:
+                    logger.warning("DEGRADED [faiss]: %s", reason)
+                self._fallback_recorded = True
             self.method = "sklearn"
             self._build_sklearn_index(embeddings)
 
@@ -162,8 +184,101 @@ class SimilaritySearch:
             pairs_df = pairs_df.drop(columns=["pair_key"])
 
         logger.info(f"Found {len(pairs_df)} similar pairs "
-                   f"(threshold={threshold:.3f})")
+                    f"(threshold={threshold:.3f})")
         return pairs_df
+
+    def find_post_pairs(self, embeddings: np.ndarray,
+                        post_ids: np.ndarray,
+                        account_ids: np.ndarray,
+                        k: Optional[int] = None,
+                        threshold: Optional[float] = None,
+                        ) -> pd.DataFrame:
+        """Post-level candidate retrieval (item 4a).
+
+        Runs the FAISS/sklearn index over ALL post embeddings (not account
+        averages) and returns candidate POST pairs with their bi-encoder
+        similarity. This stage is intentionally recall-oriented: `threshold`
+        is a low floor that only removes obviously-unrelated pairs; precision
+        comes later from the cross-encoder rerank (item 5).
+
+        Args:
+            embeddings: (n_posts, dim) L2-normalized post embedding matrix.
+            post_ids: array of post IDs aligned with embeddings rows.
+            account_ids: array of account IDs aligned with embeddings rows.
+            k: neighbors per post (default from config k_neighbors).
+            threshold: similarity floor for keeping a candidate pair.
+
+        Returns:
+            DataFrame: post_a, account_a, post_b, account_b, biencoder_similarity
+            Cross-account pairs only; (A,B) and (B,A) deduplicated; self-pairs
+            (same account) excluded so account-level aggregation can never
+            produce a self-loop edge.
+        """
+        k = k or self.k_neighbors
+        threshold = self.retrieval_threshold if threshold is None else threshold
+
+        self.build_index(embeddings)
+        # +1 because the nearest neighbor of a post is usually itself
+        indices, similarities = self.search(embeddings, k=min(k + 1, self._index_size()))
+
+        pairs = []
+        n = len(embeddings)
+        for i in range(n):
+            acc_a = account_ids[i]
+            for j_idx in range(indices.shape[1]):
+                neighbor_idx = indices[i, j_idx]
+                if neighbor_idx == i:
+                    continue  # self
+                acc_b = account_ids[neighbor_idx]
+                if acc_b == acc_a:
+                    continue  # same account: not a coordination pair
+                sim = float(similarities[i, j_idx])
+                if sim < threshold:
+                    continue
+                pairs.append({
+                    "post_a": post_ids[i],
+                    "account_a": acc_a,
+                    "post_b": post_ids[neighbor_idx],
+                    "account_b": acc_b,
+                    "biencoder_similarity": sim,
+                })
+
+        pairs_df = pd.DataFrame(pairs)
+        if pairs_df.empty:
+            logger.warning("Post-level retrieval found 0 candidate pairs "
+                           "(threshold=%.3f)", threshold)
+            return pairs_df
+
+        # Deduplicate symmetric pairs, keeping the higher score
+        pairs_df["pair_key"] = pairs_df.apply(
+            lambda r: tuple(sorted([str(r["post_a"]), str(r["post_b"])])),
+            axis=1,
+        )
+        pairs_df = (
+            pairs_df.sort_values("biencoder_similarity", ascending=False)
+            .drop_duplicates(subset="pair_key")
+            .drop(columns=["pair_key"])
+            .reset_index(drop=True)
+        )
+
+        logger.info(
+            "Post-level retrieval: %d candidate post pairs across %d account "
+            "pairs (k=%d, retrieval_floor=%.3f)",
+            len(pairs_df),
+            pairs_df.groupby(
+                [pairs_df["account_a"], pairs_df["account_b"]]
+            ).ngroups,
+            k, threshold,
+        )
+        return pairs_df
+
+    def _index_size(self) -> int:
+        """Number of vectors in the active index (for k clamping)."""
+        if self._index is not None:
+            return self._index.ntotal
+        if self._sklearn_model is not None:
+            return getattr(self._sklearn_model, "n_samples_fit_", self.k_neighbors)
+        return self.k_neighbors
 
     def find_account_similarities(self, account_embeddings: np.ndarray,
                                   account_ids: np.ndarray,
@@ -230,7 +345,7 @@ class CrossEncoderReranker:
         )
     """
 
-    def __init__(self, config: dict):
+    def __init__(self, config: dict, degradations=None):
         self.config = config
         sim_config = config.get("similarity", {})
         self.model_name = sim_config.get(
@@ -238,6 +353,11 @@ class CrossEncoderReranker:
         )
         self.batch_size = sim_config.get("cross_encoder_batch_size", 64)
         self._model = None
+        # Optional DegradationTracker (item 8): pairs that keep a NaN
+        # cross-encoder score (cap/disabled/missed) are lower-confidence and
+        # must surface in pipeline_results.json, not just the logs.
+        self.degradations = degradations
+        self._warned_lower_confidence = False
 
     def _load_model(self):
         """Lazy-load the cross-encoder model."""
@@ -255,7 +375,7 @@ class CrossEncoderReranker:
             )
 
     def _normalize_scores(self, raw_scores: np.ndarray) -> np.ndarray:
-        """Normalize raw model outputs to [0, 1].
+        """Normalize raw model outputs to [0, 1] as a numpy array.
 
         Entailment models (nli-deberta-v3-base) output 3 logits per pair
         (contradiction, neutral, entailment). We take the entailment logit
@@ -263,10 +383,11 @@ class CrossEncoderReranker:
         sigmoid directly.
         """
         if raw_scores.ndim == 2 and raw_scores.shape[1] == 3:
-            # Entailment model: 3 classes -> use entailment column (index 2)
-            import torch.nn.functional as F
-            entailment_logits = raw_scores[:, 2]
-            return F.sigmoid(entailment_logits)
+            # Entailment model: 3 classes -> use entailment column (index 2).
+            # torch.sigmoid (item 7): the free F.sigmoid function is deprecated
+            # and will be removed in a future torch release.
+            import torch
+            return torch.sigmoid(torch.as_tensor(raw_scores[:, 2])).numpy()
         elif raw_scores.ndim == 2 and raw_scores.shape[1] == 1:
             return 1.0 / (1.0 + np.exp(-raw_scores[:, 0]))
         else:
@@ -280,6 +401,7 @@ class CrossEncoderReranker:
         texts_b: List[str],
         score_column: str = "semantic_similarity",
         new_score_column: str = "cross_encoder_score",
+        top_k: Optional[int] = None,
     ) -> pd.DataFrame:
         """Re-score candidate pairs with the cross-encoder.
 
@@ -290,6 +412,11 @@ class CrossEncoderReranker:
             texts_b: List of text strings corresponding to the second entity in each pair.
             score_column: Name of the existing bi-encoder score column.
             new_score_column: Name for the new cross-encoder score column.
+            top_k: If set, only the top_k rows (ranked by score_column) are
+                re-scored with the cross-encoder; all other rows keep a NaN
+                cross-encoder score. Implements the cost-control documented by
+                config key cross_encoder_rerank_k (item 6 - previously this
+                config was read nowhere). None means rerank everything.
 
         Returns:
             DataFrame with the new cross-encoder score column added.
@@ -300,9 +427,32 @@ class CrossEncoderReranker:
             candidate_df[new_score_column] = []
             return candidate_df
 
-        n_pairs = len(texts_a)
-        assert len(texts_b) == n_pairs, (
-            f"texts_a and texts_b must have same length, got {n_pairs} vs {len(texts_b)}"
+        result = candidate_df.copy()
+
+        # Optional cost-control truncation (item 6)
+        rerank_mask = pd.Series(True, index=result.index)
+        if top_k is not None and top_k > 0 and len(result) > top_k:
+            if score_column in result.columns:
+                order = result[score_column].rank(ascending=False, method="first")
+                rerank_mask = order <= top_k
+            else:
+                rerank_mask = pd.Series(
+                    [i < top_k for i in range(len(result))], index=result.index
+                )
+            logger.info(
+                "Cross-encoder cost control: reranking top %d of %d candidates "
+                "(cross_encoder_rerank_k=%d)",
+                int(rerank_mask.sum()), len(result), top_k,
+            )
+        rerank_idx = result.index[rerank_mask]
+
+        positions = [result.index.get_loc(i) for i in rerank_idx]
+        texts_a_r = [texts_a[p] for p in positions]
+        texts_b_r = [texts_b[p] for p in positions]
+
+        n_pairs = len(texts_a_r)
+        assert len(texts_b_r) == n_pairs, (
+            f"texts_a and texts_b must have same length, got {n_pairs} vs {len(texts_b_r)}"
         )
 
         logger.info(
@@ -312,7 +462,7 @@ class CrossEncoderReranker:
 
         # Batch inference
         raw_scores = self._model.predict(
-            list(zip(texts_a, texts_b)),
+            list(zip(texts_a_r, texts_b_r)),
             batch_size=self.batch_size,
             show_progress_bar=n_pairs > 100,
         )
@@ -325,6 +475,19 @@ class CrossEncoderReranker:
             f"({n_pairs / max(elapsed, 0.001):.1f} pairs/sec)"
         )
 
-        result = candidate_df.copy()
-        result[new_score_column] = scores
+        result[new_score_column] = np.nan
+        result.loc[rerank_idx, new_score_column] = scores
+
+        n_missed = int(result[new_score_column].isna().sum())
+        if n_missed > 0 and not self._warned_lower_confidence:
+            reason = (
+                f"{n_missed} candidate pairs not reranked by the cross-encoder "
+                "(rerank cap or disabled); their semantic scores fall back to "
+                "the lower-confidence bi-encoder score"
+            )
+            if self.degradations is not None:
+                self.degradations.record("cross_encoder", reason)
+            else:
+                logger.warning(reason)
+            self._warned_lower_confidence = True
         return result

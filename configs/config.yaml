@@ -56,9 +56,16 @@ nlp:
 similarity:
   # Method for nearest neighbor search
   method: "faiss"  # "faiss" or "sklearn"
-  # Number of nearest neighbors to find
+  # Number of nearest neighbors to find (per post, at the post level)
   k_neighbors: 20
-  # Cosine similarity threshold for creating edges
+  # RECALL-ORIENTED retrieval floor (item 5). Applied only to discard
+  # obviously-unrelated post pairs BEFORE cross-encoder reranking; the
+  # cross-encoder score is the precision gate. 0.3 because unrelated text
+  # rarely exceeds ~0.3 cosine with L2-normalized MiniLM embeddings, while
+  # paraphrases stay well above it. Do NOT raise this to a precision filter
+  # value - that defeats the retrieve-then-rerank design.
+  retrieval_floor: 0.3
+  # Cosine similarity threshold for creating edges (bi-encoder-only mode)
   semantic_threshold: 0.7
   # Use FAISS index type (flat, ivf, pq)
   faiss_index_type: "flat"
@@ -71,8 +78,16 @@ similarity:
   cross_encoder_model: "cross-encoder/nli-deberta-v3-base"
   # Batch size for cross-encoder inference (affects GPU memory / speed)
   cross_encoder_batch_size: 64
-  # Number of FAISS candidates per post to rerank (reduces from k_neighbors)
-  cross_encoder_rerank_k: 20
+  # Cost control (item 6): rerank only the top-N post-pair candidates per
+  # pipeline run, ranked by bi-encoder score. Pairs beyond this keep a NaN
+  # cross-encoder score and fall back to the bi-encoder score (flagged as
+  # lower-confidence). null = rerank every candidate (no cap).
+  cross_encoder_rerank_k: null
+  # Max post pairs kept per account pair from post-level retrieval (item 4b)
+  max_post_pairs_per_account_pair: 3
+  # Hard cap on total cross-encoder invocations per run (safety valve for
+  # large datasets; most-relevant pairs are reranked first). null = no cap.
+  max_rerank_pairs: 20000
 
 # ============================================================
 # TEMPORAL CONFIGURATION
@@ -205,7 +220,8 @@ explainability:
   permutation_runs: 10
   # Whether to compute SHAP (requires additional dependencies)
   use_shap: false
-  # Whether to use GNNExplainer
+  # GNNExplainer over the trained GNN (item 22: implemented via
+  # torch_geometric.explain on the GCN model). Adds runtime cost.
   use_gnnexplainer: true
 
 # ============================================================

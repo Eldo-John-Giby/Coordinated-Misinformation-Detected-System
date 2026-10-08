@@ -24,11 +24,15 @@ from src.evaluation.metrics import EvaluationMetrics
 
 
 @pytest.fixture
-def sample_config():
-    """Create a test configuration."""
+def sample_config(tmp_path):
+    """Create a test configuration.
+
+    Uses tmp_path so tests NEVER write into the real data/raw directory
+    (writing there would regenerate the synthetic-data marker and cause
+    real pipeline runs to be mis-tagged as synthetic)."""
     return {
         "data": {
-            "raw_dir": "data/raw",
+            "raw_dir": str(tmp_path / "raw"),
             "processed_dir": "data/processed",
             "campaign": "test",
             "max_files_per_campaign": 1,

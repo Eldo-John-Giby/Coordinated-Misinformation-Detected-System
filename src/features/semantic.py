@@ -107,11 +107,69 @@ class SemanticFeatures:
 
         return pd.DataFrame(results)
 
+    def aggregate_post_pair_candidates(
+        self,
+        post_pairs_df: pd.DataFrame,
+        top_n: int = 3,
+    ) -> pd.DataFrame:
+        """Aggregate post-level candidates up to account-pair rows (item 4b).
+
+        For each account pair, keeps the top_n highest-scoring post pairs
+        (by bi-encoder similarity). The best post pair defines the account
+        pair's candidate score; the full matched post pairs are preserved so
+        the cross-encoder reranks the ACTUAL matched texts, and the winning
+        pairs can later be surfaced as evidence (item 4d).
+
+        Returns DataFrame: account_a, account_b, biencoder_similarity,
+        n_post_pairs, matched_post_pairs (list of dicts with post ids + texts
+        keys to be filled by the caller).
+        """
+        if post_pairs_df is None or post_pairs_df.empty:
+            return pd.DataFrame()
+
+        pp = post_pairs_df.sort_values("biencoder_similarity", ascending=False)
+        ranked = pp.groupby(["account_a", "account_b"], group_keys=False)
+
+        # Top-N post pairs per account pair
+        top_pairs = ranked.head(top_n).copy()
+
+        # Best score per account pair
+        best = (
+            pp.groupby(["account_a", "account_b"], as_index=False)
+            .first()
+            [["account_a", "account_b", "biencoder_similarity"]]
+            .rename(columns={"biencoder_similarity": "biencoder_similarity"})
+        )
+
+        agg = best.merge(
+            top_pairs.assign(
+                matched=lambda d: d.apply(
+                    lambda r: {
+                        "post_a": r["post_a"], "post_b": r["post_b"],
+                        "biencoder_similarity": float(r["biencoder_similarity"]),
+                    }, axis=1,
+                )
+            )[["account_a", "account_b", "matched"]]
+            .groupby(["account_a", "account_b"], as_index=False)
+            .agg({"matched": lambda x: list(x)}),
+            on=["account_a", "account_b"],
+            how="left",
+        )
+        agg["n_post_pairs"] = agg["matched"].apply(len)
+
+        logger.info(
+            "Aggregated %d post-pair candidates into %d account pairs "
+            "(top_%d post pairs kept per pair)",
+            len(pp), len(agg), top_n,
+        )
+        return agg
+
     def merge_semantic_scores(
         self,
         biencoder_scores: Dict[Tuple[str, str], float],
         crossencoder_scores: Optional[Dict[Tuple[str, str], float]] = None,
         use_cross_encoder: bool = False,
+        degradations=None,
     ) -> Dict[Tuple[str, str], Dict[str, float]]:
         """Merge bi-encoder and cross-encoder scores for account pairs.
 
@@ -121,6 +179,10 @@ class SemanticFeatures:
             use_cross_encoder: If True, the "semantic_similarity" key in the returned dict
                 uses the cross-encoder score (for the coordination formula). If False,
                 the bi-encoder score is used.
+            degradations: Optional DegradationTracker. Any pair that ends up
+                scored by the bi-encoder only is recorded there (item 8c):
+                a bi-encoder-only semantic score is lower-confidence and must
+                not silently pass as if it had been reranked.
 
         Returns:
             Dict mapping (acc_a, acc_b) -> dict with keys:
@@ -130,6 +192,7 @@ class SemanticFeatures:
         """
         crossencoder_scores = crossencoder_scores or {}
         merged = {}
+        bi_only_pairs = 0
 
         for pair_key, bi_score in biencoder_scores.items():
             cross_score = crossencoder_scores.get(pair_key, None)
@@ -141,6 +204,8 @@ class SemanticFeatures:
                 entry["semantic_similarity"] = cross_score
             else:
                 entry["semantic_similarity"] = bi_score
+                if use_cross_encoder and cross_score is None:
+                    bi_only_pairs += 1
             merged[pair_key] = entry
 
         # Also include pairs that only have cross-encoder scores (unusual but safe)
@@ -151,6 +216,17 @@ class SemanticFeatures:
                     "semantic_score_crossencoder": cross_score,
                     "semantic_similarity": cross_score if use_cross_encoder else 0.0,
                 }
+
+        if bi_only_pairs > 0:
+            reason = (
+                f"{bi_only_pairs} account pairs scored by bi-encoder only "
+                "(cross-encoder disabled or missed these candidates); "
+                "semantic scores are lower-confidence"
+            )
+            if degradations is not None:
+                degradations.record("cross_encoder", reason)
+            else:
+                logger.warning(reason)
 
         logger.info(
             f"Merged semantic scores for {len(merged)} pairs "

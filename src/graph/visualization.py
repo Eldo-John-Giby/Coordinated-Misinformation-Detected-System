@@ -190,14 +190,14 @@ class GraphVisualizer:
                       title: str = "Precision-Recall Curves",
                       filename: str = "pr_curve"):
         """Plot Precision-Recall curves for multiple models."""
-        from sklearn.metrics import precision_recall_curve, average_precision
+        from sklearn.metrics import precision_recall_curve, average_precision_score
 
         fig, ax = plt.subplots(figsize=(10, 8))
         colors = plt.cm.Set1(np.linspace(0, 1, len(y_scores)))
 
         for (model_name, scores), color in zip(y_scores.items(), colors):
             precision, recall, _ = precision_recall_curve(y_true, scores)
-            ap = average_precision(y_true, scores)
+            ap = average_precision_score(y_true, scores)
             ax.plot(recall, precision, color=color, linewidth=2,
                    label=f"{model_name} (AP = {ap:.3f})")
 

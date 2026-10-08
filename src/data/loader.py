@@ -18,6 +18,7 @@ Expected CSV columns:
 """
 
 import os
+import re
 import glob
 import logging
 from typing import Optional, Dict, List, Tuple
@@ -34,6 +35,10 @@ class DataLoader:
     REQUIRED_COLUMNS = [
         "postid", "post_text", "post_time", "accountid", "is_control"
     ]
+
+    # Marker file written by create_sample_dataset(). Its presence lets the
+    # pipeline prove (not assume) that the loaded data is synthetic.
+    SYNTHETIC_MARKER_FILE = "SYNTHETIC_DATA.txt"
 
     ALL_COLUMNS = [
         "postid", "post_text", "application_name", "post_language",
@@ -88,13 +93,19 @@ class DataLoader:
         return files
 
     def load_csv(self, filepath: str) -> pd.DataFrame:
-        """Load a single CSV or JSONL file with validation."""
+        """Load a single CSV or JSONL file with validation.
+
+        accountid is force-read as string. If any ID cell were empty, pandas
+        would infer float64 for the whole column, losing integer precision on
+        18+ digit account IDs (> 2**53) and later creating self-loop edges
+        via int/float coercion (e.g. "2214516257" vs 2214516257.0).
+        """
         try:
             ext = os.path.splitext(filepath)[1].lower()
             if ext == ".jsonl":
                 df = pd.read_json(filepath, lines=True)
             else:
-                df = pd.read_csv(filepath, low_memory=False)
+                df = pd.read_csv(filepath, low_memory=False, dtype={"accountid": str})
             logger.info(f"Loaded {filepath}: {len(df)} rows, {len(df.columns)} columns")
             return df
         except Exception as e:
@@ -135,6 +146,7 @@ class DataLoader:
             raise ValueError(f"No valid data loaded for campaign '{campaign}'")
 
         combined = pd.concat(dfs, ignore_index=True)
+        combined = canonicalize_account_ids(combined)
 
         # Apply max_posts limit
         if self.max_posts and len(combined) > self.max_posts:
@@ -174,7 +186,8 @@ class DataLoader:
         if not dfs:
             raise ValueError("No campaigns loaded successfully")
 
-        return pd.concat(dfs, ignore_index=True)
+        combined = pd.concat(dfs, ignore_index=True)
+        return canonicalize_account_ids(combined)
 
     def get_dataset_info(self, df: pd.DataFrame) -> Dict:
         """Get summary statistics about the dataset."""
@@ -226,6 +239,78 @@ class DataLoader:
         if not os.path.exists(path):
             raise FileNotFoundError(f"Processed data not found at {path}")
         return pd.read_csv(path, low_memory=False)
+
+
+def canonicalize_account_ids(df: pd.DataFrame) -> pd.DataFrame:
+    """Normalize account identifiers to a single canonical string dtype.
+
+    Runs once at load time, BEFORE any merge/dedup/groupby, so no downstream
+    operation can re-introduce NaN-triggered float coercion of account IDs.
+
+    - "1204524215807942656" / 1204524215807942656 / 1.2045242158079466e+18
+      all canonicalize to "1204524215807942656"
+    - NaN / None / "nan" / "" / "None" -> dropped (cannot identify an account)
+    """
+    if "accountid" not in df.columns:
+        return df
+
+    original_len = len(df)
+
+    def _canonicalize(val):
+        if pd.isna(val):
+            return None
+        s = str(val).strip()
+        if not s or s.lower() in ("nan", "none", "null", "<na>"):
+            return None
+        # Recover full integer precision from a float-mangled ID such as
+        # 1.2045242158079466e+18 (result of NaN-driven float coercion).
+        if re.fullmatch(r"[-+]?\d*\.\d+[eE][-+]?\d+", s) or re.fullmatch(r"[-+]?\d+\.0", s):
+            try:
+                f = float(s)
+                if f.is_integer():
+                    return str(int(f))
+            except (ValueError, OverflowError):
+                pass
+        # Plain integers (possibly float-typed by pandas) lose no precision
+        # here because str(int(x)) only applies when the value is integral.
+        if isinstance(val, float) and val.is_integer():
+            return str(int(val))
+        if isinstance(val, (int, np.integer)):
+            return str(int(val))
+        return s
+
+    df["accountid"] = df["accountid"].apply(_canonicalize)
+    df = df.dropna(subset=["accountid"]).reset_index(drop=True)
+
+    dropped = original_len - len(df)
+    if dropped > 0:
+        logger.warning(
+            "Dropped %d rows with unidentifiable accountid (%.2f%%)",
+            dropped, 100.0 * dropped / max(original_len, 1),
+        )
+
+    # Same treatment for the repost-target column, which is compared against
+    # accountid by the repost feature and can carry the same coercion damage.
+    if "reposted_accountid" in df.columns:
+        df["reposted_accountid"] = df["reposted_accountid"].apply(
+            lambda v: _canonicalize(v) if pd.notna(v) else None
+        )
+
+    # is_control must be strictly boolean (CSV round-trips can yield strings).
+    if "is_control" in df.columns and df["is_control"].dtype == object:
+        normalized = (
+            df["is_control"].astype(str).str.strip().str.lower()
+        )
+        df["is_control"] = normalized.isin(["true", "1", "yes"])
+        unmapped = (~normalized.isin(["true", "1", "yes", "false", "0", "no", "nan"])).sum()
+        if unmapped > 0:
+            logger.warning(
+                "is_control had %d unrecognizable values; coerced to False (IO)",
+                unmapped,
+            )
+
+    logger.info("Canonicalized account IDs to string dtype (%d rows)", len(df))
+    return df
 
 
 def create_sample_dataset(output_dir: str = "data/raw", num_accounts: int = 50,
@@ -334,5 +419,13 @@ def create_sample_dataset(output_dir: str = "data/raw", num_accounts: int = 50,
     os.makedirs(output_dir, exist_ok=True)
     path = os.path.join(output_dir, "sample_campaign.csv")
     df.to_csv(path, index=False)
+    # Marker so the pipeline can PROVE the data is synthetic at load time
+    # (item 9: synthetic fallback must never masquerade as a real run).
+    with open(os.path.join(output_dir, DataLoader.SYNTHETIC_MARKER_FILE), "w") as f:
+        f.write(
+            "This directory contains SYNTHETIC data generated by "
+            "create_sample_dataset(). Any pipeline results produced from it "
+            "are not real analysis output.\n"
+        )
     logger.info(f"Created sample dataset with {len(df)} posts at {path}")
     return path

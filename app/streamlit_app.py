@@ -72,6 +72,47 @@ def load_results(results_dir: str = "results"):
         return json.load(f)
 
 
+def load_coordination_weights(config_path: str = "configs/config.yaml"):
+    """Read coordination weights from config.yaml (item 18).
+
+    Previously Tab 5 plotted a hardcoded dict, so editing the config's
+    coordination weights did not change what the dashboard showed.
+    """
+    try:
+        import yaml
+        with open(config_path, "r") as f:
+            config = yaml.safe_load(f) or {}
+        weights = (config.get("coordination", {}) or {}).get("weights", {})
+        if weights:
+            return {
+                "Semantic": float(weights.get("semantic", 0.0)),
+                "Temporal": float(weights.get("temporal", 0.0)),
+                "URL": float(weights.get("url", 0.0)),
+                "Hashtag": float(weights.get("hashtag", 0.0)),
+                "Mention": float(weights.get("mention", 0.0)),
+                "Repost": float(weights.get("repost", 0.0)),
+            }
+    except FileNotFoundError:
+        st.warning(f"Config not found at {config_path}; cannot display live weights")
+    except Exception as e:
+        st.warning(f"Could not load weights from config: {e}")
+    return None
+
+
+def load_graph(results_dir: str = "results"):
+    """Load the persisted coordination graph (item 16 artifact)."""
+    path = os.path.join(results_dir, "artifacts", "coordination_graph.pkl")
+    if not os.path.exists(path):
+        return None
+    try:
+        import pickle
+        with open(path, "rb") as f:
+            return pickle.load(f)
+    except Exception as e:
+        st.warning(f"Could not load persisted graph: {e}")
+        return None
+
+
 def load_data(processed_dir: str = "data/processed"):
     """Load processed data."""
     csv_path = os.path.join(processed_dir, "processed_data.csv")
@@ -280,12 +321,33 @@ def main():
     with tab3:
         st.header("Coordination Network Graph")
 
-        # Check if graph data is available
-        graph_path = os.path.join(results_dir, "figures", "network_graph.png")
-        if os.path.exists(graph_path):
-            st.image(graph_path, caption="Coordination Network")
+        # Item 17: interactive Plotly network from the persisted graph,
+        # instead of the static network_graph.png image.
+        G = load_graph(results_dir)
+        if G is not None and G.number_of_nodes() > 0:
+            max_nodes = 300
+            if G.number_of_nodes() > max_nodes:
+                degrees = dict(G.degree())
+                top_nodes = sorted(degrees, key=degrees.get, reverse=True)[:max_nodes]
+                G = G.subgraph(top_nodes).copy()
+                st.caption(
+                    f"Showing the {max_nodes} most-connected nodes of "
+                    f"{G.number_of_nodes()} total."
+                )
+            st.plotly_chart(
+                create_network_plot(G, "Coordination Network"),
+                use_container_width=True,
+                key="interactive_network",
+            )
         else:
-            st.info("Network graph not generated yet")
+            st.info(
+                "Persisted graph not found (results/artifacts/"
+                "coordination_graph.pkl). Re-run the pipeline to generate it; "
+                "falling back to the static image."
+            )
+            graph_path = os.path.join(results_dir, "figures", "network_graph.png")
+            if os.path.exists(graph_path):
+                st.image(graph_path, caption="Coordination Network (static)")
 
         # Graph statistics
         graph_stats = results.get("graph_stats", {})
@@ -350,29 +412,52 @@ def main():
             st.write("**Summary:**")
             st.write(group.get("summary", "No summary available"))
 
-            # Feature weights
-            st.write("**Detection Weights:**")
-            weights = {
-                "Semantic": 0.35,
-                "Temporal": 0.25,
-                "URL": 0.15,
-                "Hashtag": 0.10,
-                "Mention": 0.05,
-                "Repost": 0.10,
-            }
+            # Feature weights (item 18: live from config.yaml, not hardcoded)
+            st.write("**Detection Weights (from configs/config.yaml):**")
+            weights = st.session_state.get("coordination_weights")
+            if not weights:
+                weights = load_coordination_weights()
+                st.session_state["coordination_weights"] = weights
 
-            fig = go.Figure(go.Bar(
-                x=list(weights.values()),
-                y=list(weights.keys()),
-                orientation="h",
-                marker_color="#3498db"
-            ))
-            fig.update_layout(
-                title="Feature Weights for Coordination Score",
-                xaxis_title="Weight",
-                height=300
-            )
-            st.plotly_chart(fig, use_container_width=True, key=f"weights_chart_{group.get('group_id', 'N/A')}")
+            # Per-group signal breakdown from results (item 12)
+            breakdown = group.get("signal_breakdown", {})
+            if breakdown:
+                labels = list(breakdown.keys())
+                mean_scores = [breakdown[k]["mean_score"] for k in labels]
+                contributions = [breakdown[k]["weighted_contribution"] for k in labels]
+                fig = go.Figure(go.Bar(
+                    x=contributions,
+                    y=labels,
+                    orientation="h",
+                    marker_color="#e67e22",
+                    customdata=list(zip(labels, mean_scores)),
+                    hovertemplate=(
+                        "%{customdata[0]}: mean %{customdata[1]:.3f}, "
+                        "contribution %{x:.3f}<extra></extra>"
+                    ),
+                ))
+                fig.update_layout(
+                    title="Per-Signal Contribution to This Group's Score",
+                    xaxis_title="Weighted contribution",
+                    height=300,
+                )
+                st.plotly_chart(fig, use_container_width=True,
+                                key=f"signal_chart_{group.get('group_id', 'N/A')}")
+
+            if weights:
+                fig = go.Figure(go.Bar(
+                    x=list(weights.values()),
+                    y=list(weights.keys()),
+                    orientation="h",
+                    marker_color="#3498db"
+                ))
+                fig.update_layout(
+                    title="Feature Weights for Coordination Score",
+                    xaxis_title="Weight",
+                    height=300
+                )
+                st.plotly_chart(fig, use_container_width=True,
+                                key=f"weights_chart_{group.get('group_id', 'N/A')}")
 
             st.markdown("---")
 

@@ -33,9 +33,26 @@ class Preprocessor:
         self.min_text_length = self.pp_config.get("min_text_length", 3)
         self.drop_malformed = self.pp_config.get("drop_malformed", True)
 
+        # Max tolerated fraction of rows with unparseable timestamps (item 8f):
+        # above this the data is considered badly parsed and we fail loudly
+        # instead of continuing on corrupted time data.
+        self.max_timestamp_drop_rate = self.pp_config.get("max_timestamp_drop_rate", 0.20)
+
         # Mappings built during preprocessing
         self.account_to_node_id: Dict[str, int] = {}
         self.node_id_to_account: Dict[int, str] = {}
+
+        # Optional DegradationTracker (set in process()); a silent sink by
+        # default so standalone use of the preprocessor still works.
+        self._degradations = None
+
+    def _note_degradation(self, component: str, reason: str, detail: str = ""):
+        """Record a degradation if a tracker is attached; else just warn."""
+        if self._degradations is not None:
+            self._degradations.record(component, reason, detail)
+        else:
+            logger.warning("DEGRADED [%s]: %s%s", component, reason,
+                           f" ({detail})" if detail else "")
 
     def validate_schema(self, df: pd.DataFrame) -> pd.DataFrame:
         """Validate and report schema issues."""
@@ -90,10 +107,22 @@ class Preprocessor:
             return df
 
         df["post_time"] = pd.to_datetime(df["post_time"], errors="coerce")
-        na_count = df["post_time"].isna().sum()
+        na_count = int(df["post_time"].isna().sum())
         if na_count > 0:
+            drop_rate = na_count / len(df)
             logger.warning(f"{na_count} timestamps could not be parsed "
-                         f"({na_count/len(df)*100:.1f}%)")
+                         f"({drop_rate*100:.1f}%)")
+            self._note_degradation(
+                "timestamps",
+                "unparseable timestamps dropped",
+                f"{na_count} rows ({drop_rate*100:.2f}%)",
+            )
+            if drop_rate > self.max_timestamp_drop_rate:
+                raise ValueError(
+                    f"{drop_rate*100:.1f}% of timestamps are unparseable "
+                    f"(>{self.max_timestamp_drop_rate*100:.0f}% threshold). "
+                    "Refusing to continue on badly parsed time data."
+                )
             # Drop rows with invalid timestamps
             df = df.dropna(subset=["post_time"])
 
@@ -140,6 +169,10 @@ class Preprocessor:
         """Parse URL field into a list."""
         if "urls" not in df.columns:
             df["url_list"] = [[] for _ in range(len(df))]
+            self._note_degradation(
+                "url_signal",
+                "'urls' column missing; shared-URL score will be 0 for all pairs",
+            )
             return df
 
         df["url_list"] = df["urls"].apply(
@@ -152,6 +185,10 @@ class Preprocessor:
         """Parse hashtags field into a list."""
         if "hashtags" not in df.columns:
             df["hashtag_list"] = [[] for _ in range(len(df))]
+            self._note_degradation(
+                "hashtag_signal",
+                "'hashtags' column missing; shared-hashtag score will be 0 for all pairs",
+            )
             return df
 
         df["hashtag_list"] = df["hashtags"].apply(
@@ -164,6 +201,10 @@ class Preprocessor:
         """Parse account_mentions field into a list."""
         if "account_mentions" not in df.columns:
             df["mention_list"] = [[] for _ in range(len(df))]
+            self._note_degradation(
+                "mention_signal",
+                "'account_mentions' column missing; shared-mention score will be 0 for all pairs",
+            )
             return df
 
         df["mention_list"] = df["account_mentions"].apply(
@@ -177,6 +218,10 @@ class Preprocessor:
         if "is_repost" not in df.columns:
             df["is_repost"] = False
             df["repost_of_account"] = None
+            self._note_degradation(
+                "repost_signal",
+                "'is_repost' column missing; repost score will be 0 for all pairs",
+            )
             return df
 
         df["is_repost"] = df["is_repost"].fillna(False).astype(bool)
@@ -228,8 +273,16 @@ class Preprocessor:
 
         return df
 
-    def process(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Run the full preprocessing pipeline."""
+    def process(self, df: pd.DataFrame, degradations=None) -> pd.DataFrame:
+        """Run the full preprocessing pipeline.
+
+        Args:
+            df: Raw posts DataFrame.
+            degradations: Optional DegradationTracker; when provided, missing
+                optional columns and timestamp-drop events are recorded there
+                so they surface in pipeline_results.json (item 8).
+        """
+        self._degradations = degradations
         logger.info(f"Starting preprocessing. Input shape: {df.shape}")
 
         df = self.validate_schema(df)
@@ -242,6 +295,7 @@ class Preprocessor:
         df = self.identify_reposts(df)
         df = self.build_account_mappings(df)
         df = self.compute_account_labels(df)
+        self._degradations = None
 
         logger.info(f"Preprocessing complete. Output shape: {df.shape}")
         return df
